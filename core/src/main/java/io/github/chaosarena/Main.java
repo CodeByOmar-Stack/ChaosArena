@@ -3,22 +3,21 @@ package io.github.chaosarena;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 public class Main extends ApplicationAdapter {
     private SpriteBatch batch;
-
-    // 1. DECLARAR: Aquí le decimos al programa que existirá un "Jugador" llamado "jugador"
     private Jugador jugador;
+    private Texture fondo;
 
     @Override
     public void create() {
         batch = new SpriteBatch();
-
-        // 2. INSTANCIAR: Creamos el objeto real.
-        // Asegúrate de que el archivo "personajes/subzero.png" exista en assets/
-        jugador = new Jugador("personajes/subzero.png", 100, 100);
+        fondo = new Texture("backgrounds/zigala.png");
+        // Ruta corregida según la estructura del proyecto
+        jugador = new Jugador("sprites/player/player_atlas/game_atlas.atlas", 100, 100);
     }
 
     @Override
@@ -26,27 +25,45 @@ public class Main extends ApplicationAdapter {
         ScreenUtils.clear(0, 0, 0, 1);
 
         float delta = Gdx.graphics.getDeltaTime();
+        boolean irDerecha = false;
+        boolean irIzquierda = false;
 
-        // Ahora "jugador" ya no da error porque fue creado en create()
-        if (Gdx.input.isKeyPressed(Input.Keys.DPAD_RIGHT) ||
-            (Gdx.input.isTouched() && Gdx.input.getX() > Gdx.graphics.getWidth() / 2)) {
-            jugador.x += 200 * delta; // Mover a la derecha
+        // Lógica de movimiento
+        if (Gdx.input.isKeyPressed(Input.Keys.DPAD_RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) {
+            jugador.x += 250 * delta;
+            irDerecha = true;
+        } else if (Gdx.input.isKeyPressed(Input.Keys.DPAD_LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) {
+            jugador.x -= 250 * delta;
+            irIzquierda = true;
         }
 
-        if (Gdx.input.isKeyPressed(Input.Keys.DPAD_LEFT) ||
-            (Gdx.input.isTouched() && Gdx.input.getX() < Gdx.graphics.getWidth() / 2)) {
-            jugador.x -= 200 * delta; // Mover a la izquierda
+        // Soporte para touch/ratón
+        if (Gdx.input.isTouched()) {
+            if (Gdx.input.getX() > Gdx.graphics.getWidth() / 2) {
+                jugador.x += 250 * delta;
+                irDerecha = true;
+            } else {
+                jugador.x -= 250 * delta;
+                irIzquierda = true;
+            }
         }
+
+        boolean estaMoviendose = irDerecha || irIzquierda;
 
         batch.begin();
-        jugador.dibujar(batch); // Dibujamos al personaje
+        if (fondo != null) {
+            batch.draw(fondo, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        }
+
+        // Llamamos al método actualizado de Jugador
+        jugador.dibujar(batch, estaMoviendose, irDerecha, irIzquierda);
         batch.end();
     }
 
     @Override
     public void dispose() {
         batch.dispose();
-        // 3. LIMPIAR: Liberamos la memoria de la imagen del jugador
+        if (fondo != null) fondo.dispose();
         if (jugador != null) jugador.dispose();
     }
 }
