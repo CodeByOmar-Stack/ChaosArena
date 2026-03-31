@@ -22,14 +22,18 @@ public class Jugador {
         this.y = y;
         this.atlas = new TextureAtlas(rutaAtlas);
 
-        // Carga manual de frames de caminata (saltando el 2 que no está en el atlas)
         Array<TextureRegion> walkFrames = new Array<>();
-        String[] walkNames = {"abel_walk1", "abel_walk3", "abel_walk4"};
-        for (String name : walkNames) {
-            TextureRegion region = atlas.findRegion(name);
-            if (region != null) walkFrames.add(region);
+        // Cargamos solo los frames que existen
+        String[] names = {"abel_walk1", "abel_walk3", "abel_walk4"};
+        for (String name : names) {
+            TextureRegion reg = atlas.findRegion(name);
+            if (reg != null) walkFrames.add(reg);
         }
+        // Animación normal (sin experimentos de flip aquí)
         animCaminar = new Animation<>(0.1f, walkFrames, Animation.PlayMode.LOOP);
+
+        // Lo mismo para el stop...
+        tiempo = 0;
 
         // Carga de frames de estar quieto
         Array<TextureRegion> stopFrames = new Array<>();
@@ -45,32 +49,27 @@ public class Jugador {
     public void dibujar(SpriteBatch batch, boolean estaMoviendose, boolean irDerecha, boolean irIzquierda) {
         tiempo += Gdx.graphics.getDeltaTime();
 
-        // Actualizar dirección
+        // Guardamos la dirección última
         if (irDerecha) mirandoDerecha = true;
         if (irIzquierda) mirandoDerecha = false;
 
-        TextureRegion frame;
-        if (estaMoviendose) {
-            frame = animCaminar.getKeyFrame(tiempo);
-        } else {
-            frame = animEstarQuieto.getKeyFrame(tiempo);
-        }
+        TextureRegion frame = estaMoviendose ? animCaminar.getKeyFrame(tiempo) : animEstarQuieto.getKeyFrame(tiempo);
 
         if (frame != null) {
             float ancho = frame.getRegionWidth();
             float alto = frame.getRegionHeight();
 
-            // Dibujar con flip si mira a la izquierda
-            if (!mirandoDerecha && !frame.isFlipX()) {
-                frame.flip(true, false);
-            } else if (mirandoDerecha && frame.isFlipX()) {
-                frame.flip(true, false);
+            if (mirandoDerecha) {
+                // Dibujo normal
+                batch.draw(frame, x, y, ancho, alto);
+            } else {
+                // Dibujo invertido:
+                // Sumamos 'ancho' a la X porque al poner ancho negativo,
+                // el dibujo se proyecta hacia la izquierda desde el punto de origen.
+                batch.draw(frame, x + ancho, y, -ancho, alto);
             }
-
-            batch.draw(frame, x, y, ancho, alto);
         }
     }
-
     public void dispose() {
         atlas.dispose();
     }
