@@ -1,0 +1,110 @@
+
+game_atlas.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+sprite_specialPunch
+  rotate: false
+  xy: 1, 110
+  size: 166, 143
+  orig: 166, 143
+  offset: 0, 0
+  index: -1
+sprite_run
+  rotate: false
+  xy: 169, 112
+  size: 158, 141
+  orig: 158, 141
+  offset: 0, 0
+  index: -1
+sprite_kick1
+  rotate: false
+  xy: 329, 127
+  size: 144, 126
+  orig: 144, 126
+  offset: 0, 0
+  index: -1
+sprite_punch1
+  rotate: false
+  xy: 475, 126
+  size: 122, 127
+  orig: 122, 127
+  offset: 0, 0
+  index: -1
+sprite_damage1
+  rotate: false
+  xy: 1, 1
+  size: 140, 107
+  orig: 140, 107
+  offset: 0, 0
+  index: -1
+sprite_jumpKick
+  rotate: false
+  xy: 599, 152
+  size: 146, 101
+  orig: 146, 101
+  offset: 0, 0
+  index: -1
+sprite_damage2
+  rotate: false
+  xy: 747, 160
+  size: 142, 93
+  orig: 142, 93
+  offset: 0, 0
+  index: -1
+sprite_damage3
+  rotate: false
+  xy: 891, 170
+  size: 131, 83
+  orig: 131, 83
+  offset: 0, 0
+  index: -1
+abel_stop3
+  rotate: false
+  xy: 599, 31
+  size: 94, 119
+  orig: 94, 119
+  offset: 0, 0
+  index: -1
+abel_stop1
+  rotate: false
+  xy: 695, 31
+  size: 85, 119
+  orig: 85, 119
+  offset: 0, 0
+  index: -1
+abel_stop2
+  rotate: false
+  xy: 782, 39
+  size: 92, 119
+  orig: 92, 119
+  offset: 0, 0
+  index: -1
+abel_stop4
+  rotate: false
+  xy: 876, 39
+  size: 92, 119
+  orig: 92, 119
+  offset: 0, 0
+  index: -1
+abel_walk1
+  rotate: false
+  xy: 329, 7
+  size: 88, 118
+  orig: 88, 118
+  offset: 0, 0
+  index: -1
+sprite_walk3
+  rotate: false
+  xy: 419, 6
+  size: 76, 118
+  orig: 76, 118
+  offset: 0, 0
+  index: -1
+sprite_walk4
+  rotate: false
+  xy: 497, 5
+  size: 74, 119
+  orig: 74, 119
+  offset: 0, 0
+  index: -1
