@@ -5,28 +5,59 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 
-/** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Main extends ApplicationAdapter {
     private SpriteBatch batch;
-    private Texture image;
+
+    // Estados del juego
+    enum Estado { MENU, COMBATE, VICTORIA, GAMEOVER }
+    Estado estadoActual = Estado.MENU;
+
+    int nivelActual = 1;
+    Texture fondo;
+    // Aquí irían vuestras clases de Personaje (que debéis crear)
+    // Personaje jugador;
+    // Personaje enemigo;
 
     @Override
     public void create() {
         batch = new SpriteBatch();
-        image = new Texture("libgdx.png");
+        cargarNivel(nivelActual);
+    }
+
+    public void cargarNivel(int numeroNivel) {
+        // Lógica para cambiar de nivel estilo "Nobody's Beat Hammer"
+        // fondo = new Texture("escenario" + numeroNivel + ".png");
+        // enemigo = new Personaje("EnemigoNivel" + numeroNivel);
     }
 
     @Override
     public void render() {
-        ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
+        // 1. Actualizar lógica según el estado
+        actualizar();
+
+        // 2. Dibujar
+        ScreenUtils.clear(0, 0, 0, 1); // Fondo negro estilo MK
         batch.begin();
-        batch.draw(image, 140, 210);
+
+        if (estadoActual == Estado.COMBATE) {
+            // batch.draw(fondo, 0, 0);
+            // jugador.dibujar(batch);
+            // enemigo.dibujar(batch);
+        }
+
         batch.end();
+    }
+
+    private void actualizar() {
+        if (estadoActual == Estado.COMBATE) {
+            // Lógica de hostias aquí
+            // Si vidaEnemigo <= 0 -> estadoActual = Estado.VICTORIA
+        }
     }
 
     @Override
     public void dispose() {
         batch.dispose();
-        image.dispose();
+        if (fondo != null) fondo.dispose();
     }
 }
