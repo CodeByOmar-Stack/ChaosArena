@@ -26,7 +26,7 @@ public class Main extends ApplicationAdapter {
 
     public void cargarNivel(int numeroNivel) {
         // Lógica para cambiar de nivel estilo "Nobody's Beat Hammer"
-        // fondo = new Texture("escenario" + numeroNivel + ".png");
+        // Fondo = new Texture("escenario" + numeroNivel + ".png");
         // enemigo = new Personaje("EnemigoNivel" + numeroNivel);
     }
 
