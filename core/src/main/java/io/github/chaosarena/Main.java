@@ -13,13 +13,10 @@ import com.badlogic.gdx.scenes.scene2d.*;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.*;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class Main extends ApplicationAdapter {
-
-    private enum GameState { MENU, PLAYING }
-    private GameState currentState = GameState.PLAYING;
 
     private SpriteBatch batch;
     private BitmapFont font, bigFont, nameFont;
@@ -39,25 +36,33 @@ public class Main extends ApplicationAdapter {
 
     private Table attackButtonTable, endGameTable;
     private Container<Touchpad> joystickContainer;
-    private TextButton endGameBtn;
+    private TextButton endGameBtn; // Declarado correctamente
 
+    // Dimensiones de diseño
     private static final float WORLD_WIDTH = 1920;
     private static final float WORLD_HEIGHT = 1080;
 
     @Override
     public void create() {
         batch = new SpriteBatch();
-        viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT);
+        // ExtendViewport: Elimina barras negras permitiendo que el fondo crezca a los lados
+        viewport = new ExtendViewport(WORLD_WIDTH, WORLD_HEIGHT);
 
         setupFonts();
         setupTextures();
-        setupAudio();
+
+        // --- AUDIO COMPATIBLE ---
+        try {
+            music = Gdx.audio.newMusic(Gdx.files.internal("sounds/Techno_Syndrome.mp3"));
+            music.setLooping(true);
+            music.setVolume(0.8f); // Sube el volumen para probar
+            music.play();
+        } catch (Exception e) {
+            Gdx.app.error("AUDIO", "Error: " + e.getMessage());
+        }
 
         player1 = new Player("Abel", "sprites/player/player_atlas/game_atlas.atlas", 300, 150, true, WORLD_HEIGHT);
         player2 = new Player("Kano", "sprites/player/player_atlas/game_atlas.atlas", WORLD_WIDTH - 900, 150, false, WORLD_HEIGHT);
-
-        player2.maxHealth = 200;
-        player2.currentHealth = 200;
 
         enemyAI = new EnemyAI(player2, player1);
 
@@ -65,7 +70,7 @@ public class Main extends ApplicationAdapter {
         Gdx.input.setInputProcessor(stage);
 
         setupGameUI();
-        startNewGame();
+        resetGame();
     }
 
     private void setupFonts() {
@@ -85,43 +90,27 @@ public class Main extends ApplicationAdapter {
         pixmap.dispose();
 
         background = new Texture("backgrounds/zigala.png");
-
-        // bg = fondo de flechas, knob = círculo gris
         joystickBg = new Texture("joystick/AIR_joystick_bg600.png");
         joystickKnob = new Texture("joystick/AIR_joystick_stick600.png");
     }
 
-    private void setupAudio() {
-        music = Gdx.audio.newMusic(Gdx.files.internal("sounds/Techno_Syndrome.mp3"));
-        music.setLooping(true);
-        music.setVolume(0.4f);
-        music.play();
-    }
-
     private void setupGameUI() {
-        // 1. ESTILO DEL JOYSTICK
         Touchpad.TouchpadStyle jsStyle = new Touchpad.TouchpadStyle();
         jsStyle.background = new TextureRegionDrawable(joystickBg);
         jsStyle.knob = new TextureRegionDrawable(joystickKnob);
-
-        // --- TAMAÑO DE LA "BOLITA" INTERNA (STICK) ---
-        // Lo hemos subido a 180 para que se vea más grande y manejable
         jsStyle.knob.setMinWidth(180);
         jsStyle.knob.setMinHeight(180);
 
-        // 2. CREACIÓN DEL JOYSTICK
         joystick = new Touchpad(20, jsStyle);
 
-        // 3. CONTENEDOR PARA EL JOYSTICK
         joystickContainer = new Container<Touchpad>(joystick);
-        joystickContainer.size(300); // El tamaño total del mando
+        joystickContainer.size(350);
         joystickContainer.setFillParent(true);
         joystickContainer.bottom().left().padLeft(100).padBottom(100);
 
-        // --- BOTONES DE ATAQUE ---
         attackButtonTable = new Table();
         attackButtonTable.setFillParent(true);
-        attackButtonTable.bottom().right().pad(100);
+        attackButtonTable.bottom().right().padRight(100).padBottom(100);
 
         TextButton.TextButtonStyle btnStyle = new TextButton.TextButtonStyle();
         btnStyle.font = font;
@@ -164,26 +153,20 @@ public class Main extends ApplicationAdapter {
         attackButtonTable.add(kick).size(350, 130).padBottom(25).row();
         attackButtonTable.add(punch).size(350, 130);
 
-        // --- PANTALLA FIN DE JUEGO ---
+        // Tabla de fin de juego
         endGameTable = new Table();
         endGameTable.setFillParent(true);
-        endGameBtn = new TextButton("", btnStyle);
+        endGameBtn = new TextButton("REINTENTAR", btnStyle);
         endGameBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) { resetGame(); }
         });
-        endGameTable.add(endGameBtn).size(600, 180).padTop(300);
+        endGameTable.add(endGameBtn).size(600, 180).center();
+        endGameTable.setVisible(false);
 
         stage.addActor(joystickContainer);
         stage.addActor(attackButtonTable);
         stage.addActor(endGameTable);
-    }
-
-    private void startNewGame() {
-        currentState = GameState.PLAYING;
-        joystickContainer.setVisible(true);
-        attackButtonTable.setVisible(true);
-        resetGame();
     }
 
     private void resetGame() {
@@ -203,7 +186,7 @@ public class Main extends ApplicationAdapter {
         ScreenUtils.clear(0, 0, 0, 1);
         float delta = Gdx.graphics.getDeltaTime();
 
-        if (currentState == GameState.PLAYING && !isGameOver) {
+        if (!isGameOver) {
             handlePlayerMovement(delta);
             enemyAI.update(delta);
             checkGameOver();
@@ -213,18 +196,17 @@ public class Main extends ApplicationAdapter {
         batch.setProjectionMatrix(viewport.getCamera().combined);
 
         batch.begin();
-        batch.draw(background, 0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+        // EL TRUCO PARA LOS BORDES: Dibujar el fondo usando el ancho real del Viewport
+        batch.draw(background, 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
 
-        if (currentState == GameState.PLAYING) {
-            player1.draw(batch);
-            player2.draw(batch);
-            drawUI();
+        player1.draw(batch);
+        player2.draw(batch);
+        drawUI();
 
-            if (isGameOver) {
-                layout.setText(bigFont, winMessage);
-                bigFont.setColor(winMessage.equals("Game Over") ? Color.RED : Color.YELLOW);
-                bigFont.draw(batch, winMessage, (WORLD_WIDTH - layout.width) / 2, (WORLD_HEIGHT + layout.height) / 2);
-            }
+        if (isGameOver) {
+            layout.setText(bigFont, winMessage);
+            bigFont.setColor(winMessage.equals("Game Over") ? Color.RED : Color.YELLOW);
+            bigFont.draw(batch, winMessage, (viewport.getWorldWidth() - layout.width) / 2, (viewport.getWorldHeight() + layout.height) / 2);
         }
         batch.end();
 
@@ -247,39 +229,38 @@ public class Main extends ApplicationAdapter {
     private void limit(Player p) {
         float w = 120 * p.scale;
         if (p.x < 0) p.x = 0;
-        if (p.x > WORLD_WIDTH - w) p.x = WORLD_WIDTH - w;
+        if (p.x > viewport.getWorldWidth() - w) p.x = viewport.getWorldWidth() - w;
     }
 
     private void drawUI() {
         float margin = 80;
         float barW = 750;
         float barH = 55;
-        float yPos = WORLD_HEIGHT - 130;
+        // Usamos el alto real del viewport para que siempre esté arriba
+        float yPos = viewport.getWorldHeight() - 130;
 
+        // --- JUGADOR 1 (Abel) ---
         nameFont.draw(batch, player1.name, margin, yPos + 75);
-        drawProgressiveBar(margin, yPos, barW, barH, player1.currentHealth / player1.maxHealth);
+        // Barra de Vida
+        drawBar(margin, yPos, barW, barH, player1.currentHealth / player1.maxHealth, Color.GREEN);
+        // Barra de Especial (DORADA) - REAÑADIDA
         drawBar(margin, yPos - 35, barW, 20, player1.comboCharge / 100f, Color.GOLD);
 
-        float x2 = WORLD_WIDTH - margin - barW;
+        // --- JUGADOR 2 (Kano) ---
+        float x2 = viewport.getWorldWidth() - margin - barW;
         layout.setText(nameFont, player2.name);
-        nameFont.draw(batch, player2.name, WORLD_WIDTH - margin - layout.width, yPos + 75);
-        drawProgressiveBar(x2, yPos, barW, barH, player2.currentHealth / player2.maxHealth);
+        nameFont.draw(batch, player2.name, viewport.getWorldWidth() - margin - layout.width, yPos + 75);
+        // Barra de Vida
+        drawBar(x2, yPos, barW, barH, player2.currentHealth / player2.maxHealth, Color.GREEN);
+        // Barra de Especial (DORADA) - REAÑADIDA
         drawBar(x2, yPos - 35, barW, 20, player2.comboCharge / 100f, Color.GOLD);
     }
 
-    private void drawProgressiveBar(float x, float y, float w, float h, float pct) {
+    private void drawBar(float x, float y, float w, float h, float pct, Color c) {
         batch.setColor(Color.RED);
         batch.draw(whiteTexture, x, y, w, h);
-        batch.setColor(Color.GREEN);
-        batch.draw(whiteTexture, x, y, w * pct, h);
-        batch.setColor(Color.WHITE);
-    }
-
-    private void drawBar(float x, float y, float w, float h, float pct, Color c) {
-        batch.setColor(Color.DARK_GRAY);
-        batch.draw(whiteTexture, x, y, w, h);
         batch.setColor(c);
-        batch.draw(whiteTexture, x, y, w * pct, h);
+        batch.draw(whiteTexture, x, y, w * Math.max(0, pct), h);
         batch.setColor(Color.WHITE);
     }
 
@@ -297,6 +278,7 @@ public class Main extends ApplicationAdapter {
 
     @Override
     public void resize(int width, int height) {
+        // 'false' para que no centre la cámara y usemos la esquina 0,0
         viewport.update(width, height, true);
     }
 
@@ -311,8 +293,8 @@ public class Main extends ApplicationAdapter {
         player1.dispose();
         player2.dispose();
         stage.dispose();
-        music.dispose();
-        if (joystickBg != null) joystickBg.dispose();
-        if (joystickKnob != null) joystickKnob.dispose();
+        if (music != null) music.dispose();
+        joystickBg.dispose();
+        joystickKnob.dispose();
     }
 }
