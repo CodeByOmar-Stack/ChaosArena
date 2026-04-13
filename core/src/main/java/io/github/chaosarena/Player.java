@@ -6,30 +6,39 @@ import com.badlogic.gdx.utils.Array;
 
 public class Player {
 
-    // Estados del jugador (mucho más limpio que booleans sueltos)
-    private enum State {
-        IDLE, WALK, ATTACK
+    public enum AttackType {
+        PUNCH, KICK, SPECIAL
+    }
+
+    public enum State {
+        IDLE, WALK, ATTACKING
     }
 
     private TextureAtlas atlas;
 
     private Animation<TextureRegion> walkAnim;
     private Animation<TextureRegion> idleAnim;
-    private Animation<TextureRegion> attackAnim;
+    private Animation<TextureRegion> punchAnim;
+    private Animation<TextureRegion> kickAnim;
+    private Animation<TextureRegion> specialAnim;
 
     private State currentState = State.IDLE;
+    private AttackType currentAttackType = AttackType.PUNCH;
 
     private float stateTime;
     private float attackTime;
 
     public float x, y;
-    public float scale = 8f;
+    public float scale = 4f; // Tamaño reducido como pediste
 
     public String name;
     public float maxHealth = 100;
     public float currentHealth = 100;
 
-    private boolean facingRight;
+    public float comboCharge = 0;
+    public final float MAX_COMBO_CHARGE = 100;
+
+    public boolean facingRight;
 
     public Player(String name, String atlasPath, float x, float y, boolean facingRight) {
         this.name = name;
@@ -45,8 +54,8 @@ public class Player {
     private void loadAnimations() {
         // WALK
         Array<TextureRegion> walk = new Array<>();
-        String[] names = {"abel_walk1", "abel_walk3", "abel_walk4"};
-        for (String n : names) {
+        String[] walkNames = {"abel_walk1", "abel_walk3", "abel_walk4"};
+        for (String n : walkNames) {
             TextureRegion r = atlas.findRegion(n);
             if (r != null) walk.add(r);
         }
@@ -60,40 +69,52 @@ public class Player {
         }
         idleAnim = new Animation<>(0.15f, idle, Animation.PlayMode.LOOP);
 
-        // ATTACK
-        Array<TextureRegion> attack = new Array<>();
-        TextureRegion punch = atlas.findRegion("abel_punch1");
-        if (punch != null) attack.add(punch);
+        // PUNCH
+        Array<TextureRegion> punch = new Array<>();
+        TextureRegion punchFrame = atlas.findRegion("abel_punch1");
+        if (punchFrame != null) punch.add(punchFrame);
+        punchAnim = new Animation<>(0.2f, punch, Animation.PlayMode.NORMAL);
 
-        attackAnim = new Animation<>(0.2f, attack, Animation.PlayMode.NORMAL);
+        // KICK
+        Array<TextureRegion> kick = new Array<>();
+        TextureRegion kickFrame = atlas.findRegion("abel_kick1");
+        if (kickFrame != null) kick.add(kickFrame);
+        kickAnim = new Animation<>(0.25f, kick, Animation.PlayMode.NORMAL);
+
+        // SPECIAL
+        Array<TextureRegion> special = new Array<>();
+        TextureRegion specialFrame = atlas.findRegion("abel_specialPunch");
+        if (specialFrame != null) special.add(specialFrame);
+        specialAnim = new Animation<>(0.4f, special, Animation.PlayMode.NORMAL);
     }
 
     public void move(float amount) {
-        // Movimiento horizontal
-        x += amount;
-
-        if (currentState != State.ATTACK) {
+        if (currentState != State.ATTACKING) {
+            x += amount;
             currentState = State.WALK;
         }
     }
 
     public void updateDirection(boolean right, boolean left) {
-        // Solo cambia dirección si no está atacando
-        if (currentState != State.ATTACK) {
+        if (currentState != State.ATTACKING) {
             if (right) facingRight = true;
             if (left) facingRight = false;
 
-            if (!right && !left) {
+            if (!right && !left && currentState == State.WALK) {
                 currentState = State.IDLE;
             }
         }
     }
 
-    public void attack() {
-        // Evitar cancelar ataques en curso
-        if (currentState != State.ATTACK) {
-            currentState = State.ATTACK;
+    public void attack(AttackType type) {
+        if (currentState != State.ATTACKING) {
+            if (type == AttackType.SPECIAL && comboCharge < MAX_COMBO_CHARGE) return;
+
+            currentState = State.ATTACKING;
+            currentAttackType = type;
             attackTime = 0;
+
+            if (type == AttackType.SPECIAL) comboCharge = 0;
         }
     }
 
@@ -102,8 +123,52 @@ public class Player {
         if (currentHealth < 0) currentHealth = 0;
     }
 
+    public void addCharge(float amount) {
+        comboCharge += amount;
+        if (comboCharge > MAX_COMBO_CHARGE) comboCharge = MAX_COMBO_CHARGE;
+    }
+
     public boolean isAttacking() {
-        return currentState == State.ATTACK;
+        return currentState == State.ATTACKING;
+    }
+
+    public State getState() {
+        return currentState;
+    }
+
+    public boolean canHit(Player other) {
+        float bodyWidth = 60 * scale;
+        float otherBodyWidth = 60 * other.scale;
+
+        float reach;
+        switch (currentAttackType) {
+            case KICK: reach = 70 * scale; break;
+            case SPECIAL: reach = 100 * scale; break;
+            case PUNCH:
+            default: reach = 50 * scale; break;
+        }
+
+        float attackAreaStart, attackAreaEnd;
+
+        // Si mira a la derecha, el área de ataque nace en el cuerpo y se extiende a la derecha
+        if (facingRight) {
+            attackAreaStart = x + (bodyWidth * 0.3f);
+            attackAreaEnd = x + bodyWidth + reach;
+        } else {
+            // Si mira a la izquierda, nace en el cuerpo y se extiende a la izquierda
+            attackAreaStart = x - reach;
+            attackAreaEnd = x + (bodyWidth * 0.7f);
+        }
+
+        // Hitbox del enemigo (su cuerpo real)
+        float enemyLeft = other.x;
+        float enemyRight = other.x + otherBodyWidth;
+
+        // Comprobación de colisión: el área del golpe debe tocar el cuerpo del enemigo
+        boolean overlapX = (enemyLeft < attackAreaEnd) && (enemyRight > attackAreaStart);
+        boolean overlapY = Math.abs(y - other.y) < (100 * scale);
+
+        return overlapX && overlapY;
     }
 
     public void draw(SpriteBatch batch) {
@@ -112,23 +177,23 @@ public class Player {
 
         TextureRegion frame;
 
-        switch (currentState) {
-            case ATTACK:
-                attackTime += delta;
-                frame = attackAnim.getKeyFrame(attackTime);
+        if (currentState == State.ATTACKING) {
+            attackTime += delta;
+            Animation<TextureRegion> anim;
+            switch (currentAttackType) {
+                case KICK: anim = kickAnim; break;
+                case SPECIAL: anim = specialAnim; break;
+                default: anim = punchAnim; break;
+            }
 
-                if (attackAnim.isAnimationFinished(attackTime)) {
-                    currentState = State.IDLE;
-                }
-                break;
-
-            case WALK:
-                frame = walkAnim.getKeyFrame(stateTime);
-                break;
-
-            default:
-                frame = idleAnim.getKeyFrame(stateTime);
-                break;
+            frame = anim.getKeyFrame(attackTime);
+            if (anim.isAnimationFinished(attackTime)) {
+                currentState = State.IDLE;
+            }
+        } else if (currentState == State.WALK) {
+            frame = walkAnim.getKeyFrame(stateTime);
+        } else {
+            frame = idleAnim.getKeyFrame(stateTime);
         }
 
         drawFrame(batch, frame);
@@ -136,14 +201,11 @@ public class Player {
 
     private void drawFrame(SpriteBatch batch, TextureRegion frame) {
         if (frame == null) return;
-
         float width = frame.getRegionWidth() * scale;
         float height = frame.getRegionHeight() * scale;
-
         if (facingRight) {
             batch.draw(frame, x, y, width, height);
         } else {
-            // Flip horizontal sin modificar textura
             batch.draw(frame, x + width, y, -width, height);
         }
     }
