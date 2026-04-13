@@ -53,8 +53,13 @@ public class Main extends ApplicationAdapter {
         player2 = new Player("CPU", "sprites/player/player_atlas/game_atlas.atlas", Gdx.graphics.getWidth() - 400, 100, false);
 
         // Configuramos al enemigo con vida alta por defecto
+<<<<<<< HEAD
         player2.maxHealth = 150;
         player2.currentHealth = 150;
+=======
+        player2.maxHealth = 500;
+        player2.currentHealth = 500;
+>>>>>>> 5d27d9d8d06851bbc3c32233a94225195e326e56
 
         enemyAI = new EnemyAI(player2, player1);
 
@@ -208,8 +213,13 @@ public class Main extends ApplicationAdapter {
     private void handlePlayerMovement(float delta) {
         float inputX = joystick.getKnobPercentX();
         if (!player1.isAttacking()) {
+<<<<<<< HEAD
             if (inputX > 0.3f) player1.move(400 * delta, player2);
             if (inputX < -0.3f) player1.move(-400 * delta, player2);
+=======
+            if (inputX > 0.3f) player1.move(400 * delta);
+            if (inputX < -0.3f) player1.move(-400 * delta);
+>>>>>>> 5d27d9d8d06851bbc3c32233a94225195e326e56
         }
         player1.updateDirection(inputX > 0.3f, inputX < -0.3f);
         limit(player1); limit(player2);

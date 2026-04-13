@@ -29,7 +29,11 @@ public class Player {
     private float attackTime;
 
     public float x, y;
+<<<<<<< HEAD
     public float scale = 4f;
+=======
+    public float scale = 4f; // Tamaño reducido como pediste
+>>>>>>> 5d27d9d8d06851bbc3c32233a94225195e326e56
 
     public String name;
     public float maxHealth = 100;
@@ -88,6 +92,7 @@ public class Player {
         specialAnim = new Animation<>(0.4f, special, Animation.PlayMode.NORMAL);
     }
 
+<<<<<<< HEAD
     public void move(float amount, Player other) {
         if (currentState != State.ATTACKING) {
             float nextX = x + amount;
@@ -103,6 +108,11 @@ public class Player {
             if (!movingTowards || Math.abs(myCenterX - otherCenterX) >= minDistance) {
                 x = nextX;
             }
+=======
+    public void move(float amount) {
+        if (currentState != State.ATTACKING) {
+            x += amount;
+>>>>>>> 5d27d9d8d06851bbc3c32233a94225195e326e56
             currentState = State.WALK;
         }
     }
@@ -144,6 +154,7 @@ public class Player {
         return currentState == State.ATTACKING;
     }
 
+<<<<<<< HEAD
     public float getCenterX() {
         return x + (60 * scale) / 2;
     }
@@ -182,6 +193,43 @@ public class Player {
 
         boolean overlapX = (enemyLeft < attackAreaRight) && (enemyRight > attackAreaLeft);
         boolean overlapY = Math.abs(y - other.y) < (60 * scale);
+=======
+    public State getState() {
+        return currentState;
+    }
+
+    public boolean canHit(Player other) {
+        float bodyWidth = 60 * scale;
+        float otherBodyWidth = 60 * other.scale;
+
+        float reach;
+        switch (currentAttackType) {
+            case KICK: reach = 70 * scale; break;
+            case SPECIAL: reach = 100 * scale; break;
+            case PUNCH:
+            default: reach = 50 * scale; break;
+        }
+
+        float attackAreaStart, attackAreaEnd;
+
+        // Si mira a la derecha, el área de ataque nace en el cuerpo y se extiende a la derecha
+        if (facingRight) {
+            attackAreaStart = x + (bodyWidth * 0.3f);
+            attackAreaEnd = x + bodyWidth + reach;
+        } else {
+            // Si mira a la izquierda, nace en el cuerpo y se extiende a la izquierda
+            attackAreaStart = x - reach;
+            attackAreaEnd = x + (bodyWidth * 0.7f);
+        }
+
+        // Hitbox del enemigo (su cuerpo real)
+        float enemyLeft = other.x;
+        float enemyRight = other.x + otherBodyWidth;
+
+        // Comprobación de colisión: el área del golpe debe tocar el cuerpo del enemigo
+        boolean overlapX = (enemyLeft < attackAreaEnd) && (enemyRight > attackAreaStart);
+        boolean overlapY = Math.abs(y - other.y) < (100 * scale);
+>>>>>>> 5d27d9d8d06851bbc3c32233a94225195e326e56
 
         return overlapX && overlapY;
     }
