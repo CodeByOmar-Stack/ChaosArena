@@ -19,11 +19,40 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class Main extends ApplicationAdapter {
 
-    // ── Estados ────────────────────────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════════════════
+    //  ESTADOS
+    // ══════════════════════════════════════════════════════════════════════════
+
     private enum GameState { MAIN_MENU, NEW_GAME, CONTINUE, CHAR_SELECT, PLAYING }
     private GameState currentState = GameState.MAIN_MENU;
 
-    // ── Core (igual que tenías) ────────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════════════════
+    //  NIVELES
+    //  Toda la dificultad de cada nivel está aquí concentrada.
+    //  Cuando cambies sprites, hazlo también aquí añadiendo un campo atlasPath.
+    // ══════════════════════════════════════════════════════════════════════════
+
+    private static final int MAX_LEVELS = 3;
+    private int currentLevel = 1;   // 1, 2 o 3
+    private int activeSlot   = -1;  // ranura de guardado activa (-1 = duelo/sin guardado)
+
+    // Configuración por nivel: { vidaEnemigo, velocidadIA, dañoGolpeIA, frecuenciaAtaqueIA }
+    // velocidadIA    → píxeles/seg que se mueve la IA (se pasa a EnemyAI)
+    // dañoGolpeIA    → daño base que hace la IA al jugador en cada golpe
+    // frecAtaqueIA   → cada cuántos segundos ataca la IA (menor = más agresiva)
+    private static final float[] LEVEL_ENEMY_HEALTH = { 300f,  600f,  1000f };
+    private static final float[] LEVEL_ENEMY_SPEED  = { 350f,  520f,   750f };
+    private static final float[] LEVEL_ENEMY_DAMAGE = {   5f,   10f,    18f };
+    private static final float[] LEVEL_ATTACK_RATE  = {   1.8f,  1.1f,   0.6f };
+
+    // Nombres del enemigo por nivel
+    // TODO: cuando tengas los sprites, cambia también el atlas en applyLevelConfig()
+    private static final String[] LEVEL_ENEMY_NAMES = { "Kano", "Shang Tsung", "Shao Kahn" };
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  CORE
+    // ══════════════════════════════════════════════════════════════════════════
+
     private SpriteBatch batch;
     private BitmapFont font, bigFont, nameFont;
     private Texture background, whiteTexture;
@@ -40,12 +69,17 @@ public class Main extends ApplicationAdapter {
     private String winMessage  = "";
     private final GlyphLayout layout = new GlyphLayout();
 
-    // ── UI combate (igual que tenías) ──────────────────────────────────────────
-    private Table attackButtonTable, endGameTable;
+    // ── UI combate ────────────────────────────────────────────────────────────
+    private Table attackButtonTable;
     private Container<Touchpad> joystickContainer;
-    private TextButton endGameBtn;
 
-    // ── UI menús (nuevo) ───────────────────────────────────────────────────────
+    // ── Pantalla de resultado (victoria / derrota) ────────────────────────────
+    private Table resultTable;          // tabla central con el mensaje
+    private Label  lblResultTitle;      // "NIVEL 2" / "GAME OVER" / "¡JUEGO COMPLETADO!"
+    private Label  lblResultSub;        // subtítulo descriptivo
+    private TextButton btnResultAction; // "SIGUIENTE NIVEL" / "MENU PRINCIPAL"
+
+    // ── UI menús ──────────────────────────────────────────────────────────────
     private Table mainMenuTable;
     private Table newGameTable;
     private Table continueTable;
@@ -57,10 +91,9 @@ public class Main extends ApplicationAdapter {
     private int duelP2 = -1;
     private Label lblP1sel, lblP2sel;
 
-    // Personajes disponibles (añade los tuyos aquí)
     private static final String[] CHAR_NAMES = { "Abel", "Kano", "Sonya", "Johnny", "Raiden", "Scorpion" };
 
-    // ── Dimensiones (igual que tenías) ────────────────────────────────────────
+    // ── Dimensiones ───────────────────────────────────────────────────────────
     private static final float WORLD_WIDTH  = 1920;
     private static final float WORLD_HEIGHT = 1080;
     private static final int   MAX_SLOTS    = 3;
@@ -87,38 +120,36 @@ public class Main extends ApplicationAdapter {
             Gdx.app.error("AUDIO", "Error: " + e.getMessage());
         }
 
-        player1 = new Player("Abel", "sprites/player/player_atlas/game_atlas.atlas", 300,              150, true,  WORLD_HEIGHT);
-        player2 = new Player("Kano", "sprites/player/player_atlas/game_atlas.atlas", WORLD_WIDTH - 900, 150, false, WORLD_HEIGHT);
+        player1 = new Player("Abel", "sprites/player/player_atlas/game_atlas.atlas",
+            300, 150, true, WORLD_HEIGHT);
+        player2 = new Player("Kano", "sprites/player/player_atlas/game_atlas.atlas",
+            WORLD_WIDTH - 900, 150, false, WORLD_HEIGHT);
 
         enemyAI = new EnemyAI(player2, player1);
 
         stage = new Stage(viewport, batch);
         Gdx.input.setInputProcessor(stage);
 
-        setupGameUI();   // UI de combate (igual que tenías)
-        setupMenuUI();   // Menús nuevos
+        setupGameUI();
+        setupMenuUI();
 
         hideGameUI();
         showMainMenu();
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  FUENTES Y TEXTURAS  (sin cambios)
+    //  FUENTES Y TEXTURAS
     // ══════════════════════════════════════════════════════════════════════════
 
     private void setupFonts() {
-        font = new BitmapFont();
-        font.getData().setScale(3.5f);
-        bigFont = new BitmapFont();
-        bigFont.getData().setScale(8f);
-        nameFont = new BitmapFont();
-        nameFont.getData().setScale(2.5f);
+        font = new BitmapFont();     font.getData().setScale(3.5f);
+        bigFont = new BitmapFont();  bigFont.getData().setScale(8f);
+        nameFont = new BitmapFont(); nameFont.getData().setScale(2.5f);
     }
 
     private void setupTextures() {
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        pixmap.setColor(Color.WHITE);
-        pixmap.fill();
+        pixmap.setColor(Color.WHITE); pixmap.fill();
         whiteTexture = new Texture(pixmap);
         pixmap.dispose();
 
@@ -128,7 +159,7 @@ public class Main extends ApplicationAdapter {
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  ESTILOS DE BOTONES
+    //  ESTILOS
     // ══════════════════════════════════════════════════════════════════════════
 
     private TextButton.TextButtonStyle makeStyle(Color bg) {
@@ -143,12 +174,14 @@ public class Main extends ApplicationAdapter {
     private TextButton.TextButtonStyle redStyle()    { return makeStyle(new Color(0.55f, 0.05f, 0.05f, 0.9f)); }
     private TextButton.TextButtonStyle goldStyle()   { return makeStyle(new Color(0.45f, 0.35f, 0.0f,  0.9f)); }
     private TextButton.TextButtonStyle dangerStyle() { return makeStyle(new Color(0.25f, 0.0f,  0.0f,  0.85f)); }
+    private TextButton.TextButtonStyle greenStyle()  { return makeStyle(new Color(0.05f, 0.4f,  0.05f, 0.9f)); }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  UI DE COMBATE  (sin cambios respecto a tu código)
+    //  UI DE COMBATE
     // ══════════════════════════════════════════════════════════════════════════
 
     private void setupGameUI() {
+        // Joystick
         Touchpad.TouchpadStyle jsStyle = new Touchpad.TouchpadStyle();
         jsStyle.background = new TextureRegionDrawable(joystickBg);
         jsStyle.knob       = new TextureRegionDrawable(joystickKnob);
@@ -161,6 +194,7 @@ public class Main extends ApplicationAdapter {
         joystickContainer.setFillParent(true);
         joystickContainer.bottom().left().padLeft(100).padBottom(100);
 
+        // Botones de ataque
         attackButtonTable = new Table();
         attackButtonTable.setFillParent(true);
         attackButtonTable.bottom().right().padRight(100).padBottom(100);
@@ -198,40 +232,200 @@ public class Main extends ApplicationAdapter {
         attackButtonTable.add(kick)   .size(350, 130).padBottom(25).row();
         attackButtonTable.add(punch)  .size(350, 130);
 
-        endGameTable = new Table();
-        endGameTable.setFillParent(true);
-        endGameBtn = new TextButton("REINTENTAR", fightStyle());
-        endGameBtn.addListener(new ClickListener() {
-            @Override public void clicked(InputEvent e, float x, float y) { resetGame(); }
+        // ── Pantalla de resultado ─────────────────────────────────────────────
+        // Se reutiliza para victoria, derrota y juego completado.
+        // Se configura dinámicamente en showResult().
+        resultTable = new Table();
+        resultTable.setFillParent(true);
+        resultTable.center();
+
+        Label.LabelStyle titleStyle = new Label.LabelStyle(bigFont, Color.YELLOW);
+        Label.LabelStyle subStyle   = new Label.LabelStyle(font,    Color.WHITE);
+
+        lblResultTitle  = new Label("", titleStyle);
+        lblResultSub    = new Label("", subStyle);
+        btnResultAction = new TextButton("", fightStyle());
+
+        // El listener del botón decide qué hacer según el estado actual
+        btnResultAction.addListener(new ClickListener() {
+            @Override public void clicked(InputEvent e, float x, float y) {
+                onResultButtonPressed();
+            }
         });
 
-        TextButton btnMenu = new TextButton("MENU PRINCIPAL", dangerStyle());
-        btnMenu.addListener(new ClickListener() {
+        TextButton btnBackToMenu = new TextButton("MENU PRINCIPAL", dangerStyle());
+        btnBackToMenu.addListener(new ClickListener() {
             @Override public void clicked(InputEvent e, float x, float y) {
                 hideGameUI();
                 showMainMenu();
             }
         });
 
-        endGameTable.center();
-        endGameTable.add(endGameBtn).size(600, 180).padBottom(20).row();
-        endGameTable.add(btnMenu)   .size(500, 140);
-        endGameTable.setVisible(false);
+        resultTable.add(lblResultTitle) .padBottom(20).row();
+        resultTable.add(lblResultSub)   .padBottom(50).row();
+        resultTable.add(btnResultAction).size(650, 160).padBottom(20).row();
+        resultTable.add(btnBackToMenu)  .size(500, 130);
+        resultTable.setVisible(false);
 
         stage.addActor(joystickContainer);
         stage.addActor(attackButtonTable);
-        stage.addActor(endGameTable);
+        stage.addActor(resultTable);
     }
 
     private void hideGameUI() {
         joystickContainer.setVisible(false);
         attackButtonTable.setVisible(false);
-        endGameTable.setVisible(false);
+        resultTable.setVisible(false);
     }
 
     private void showGameUI() {
         joystickContainer.setVisible(true);
         attackButtonTable.setVisible(true);
+        resultTable.setVisible(false);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  PANTALLA DE RESULTADO  (victoria / derrota / juego completado)
+    // ══════════════════════════════════════════════════════════════════════════
+
+    /** Configura y muestra la pantalla de resultado según si ganó o perdió. */
+    private void showResult(boolean playerWon) {
+        isGameOver = true;
+        joystickContainer.setVisible(false);
+        attackButtonTable.setVisible(false);
+
+        if (!playerWon) {
+            // ── DERROTA ───────────────────────────────────────────────────────
+            lblResultTitle.setText("GAME OVER");
+            lblResultTitle.setStyle(new Label.LabelStyle(bigFont, Color.RED));
+            lblResultSub.setText("Has sido derrotado en el Nivel " + currentLevel);
+            btnResultAction.setText("REINTENTAR");
+            // No guardamos progreso al perder, pero sí mantenemos el nivel alcanzado
+            // La ranura ya tiene guardado el nivel antes de empezar el combate
+
+        } else if (currentLevel >= MAX_LEVELS) {
+            // ── JUEGO COMPLETADO ──────────────────────────────────────────────
+            lblResultTitle.setText("¡JUEGO COMPLETADO!");
+            lblResultTitle.setStyle(new Label.LabelStyle(bigFont, Color.GOLD));
+            lblResultSub.setText("¡Has dominado los 3 niveles de Chaos Arena!");
+            btnResultAction.setText("MENU PRINCIPAL");
+            // Marcamos la ranura como completada
+            if (activeSlot >= 0) {
+                int wins = prefs.getInteger("slot_" + activeSlot + "_wins", 0) + 1;
+                prefs.putInteger("slot_" + activeSlot + "_wins", wins);
+                prefs.putInteger("slot_" + activeSlot + "_level", 1); // reinicia al nivel 1
+                prefs.flush();
+            }
+
+        } else {
+            // ── NIVEL SUPERADO ────────────────────────────────────────────────
+            int nextLevel = currentLevel + 1;
+            lblResultTitle.setText("NIVEL " + currentLevel + " SUPERADO");
+            lblResultTitle.setStyle(new Label.LabelStyle(bigFont, Color.YELLOW));
+            lblResultSub.setText("Prepárate para el Nivel " + nextLevel + "...");
+            btnResultAction.setText("NIVEL " + nextLevel + "  >");
+            // Guardamos que el jugador ha alcanzado el siguiente nivel
+            if (activeSlot >= 0) {
+                prefs.putInteger("slot_" + activeSlot + "_level", nextLevel);
+                prefs.flush();
+            }
+        }
+
+        resultTable.setVisible(true);
+        winMessage = ""; // ya no necesitamos el texto superpuesto del render
+    }
+
+    /** Lo que hace el botón principal de resultado según el contexto. */
+    private void onResultButtonPressed() {
+        if (!isGameOver) return;
+
+        boolean playerWon = player2.currentHealth <= 0;
+
+        if (!playerWon) {
+            // Derrota → reintentar el mismo nivel
+            applyLevelConfig();
+            startCombat();
+        } else if (currentLevel >= MAX_LEVELS) {
+            // Juego completado → menú principal
+            hideGameUI();
+            showMainMenu();
+        } else {
+            // Victoria en nivel 1 o 2 → avanza al siguiente
+            currentLevel++;
+            applyLevelConfig();
+            startCombat();
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  CONFIGURACIÓN DE NIVEL
+    //  Aquí se ajustan vida, velocidad y agresividad según el nivel actual.
+    //  TODO: cuando tengas sprites nuevos para cada nivel, cámbialo aquí.
+    // ══════════════════════════════════════════════════════════════════════════
+
+    private void applyLevelConfig() {
+        int idx = currentLevel - 1; // índice 0-based
+
+        // Nombre del enemigo
+        player2.name = LEVEL_ENEMY_NAMES[idx];
+
+        // Vida del enemigo
+        player2.maxHealth     = LEVEL_ENEMY_HEALTH[idx];
+        player2.currentHealth = LEVEL_ENEMY_HEALTH[idx];
+
+        // Velocidad y agresividad de la IA
+        enemyAI.setSpeed(LEVEL_ENEMY_SPEED[idx]);
+        enemyAI.setDamage(LEVEL_ENEMY_DAMAGE[idx]);
+        enemyAI.setAttackRate(LEVEL_ATTACK_RATE[idx]);
+
+        // TODO Nivel 1 → enemyAI.setAtlasPath("sprites/enemy/kano_atlas.atlas");
+        // TODO Nivel 2 → enemyAI.setAtlasPath("sprites/enemy/shang_atlas.atlas");
+        // TODO Nivel 3 → enemyAI.setAtlasPath("sprites/enemy/shaokahn_atlas.atlas");
+
+        Gdx.app.log("NIVEL", "Nivel " + currentLevel
+            + " | HP=" + player2.maxHealth
+            + " | Speed=" + enemyAI.getSpeed()
+            + " | Damage=" + enemyAI.getDamage()
+            + " | AttackRate=" + enemyAI.getAttackRate());
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  ARRANCAR / REINICIAR COMBATE
+    // ══════════════════════════════════════════════════════════════════════════
+
+    /** Inicia el combate del nivel actual (ya configurado con applyLevelConfig). */
+    private void startCombat() {
+        currentState = GameState.PLAYING;
+        hideAllMenus();
+        showGameUI();
+
+        // Resetea posiciones y estado, respetando la vida/config ya aplicada
+        player1.currentHealth = player1.maxHealth;
+        player1.comboCharge   = 0;
+        player1.x             = 200;
+        player2.comboCharge   = 0;
+        player2.x             = WORLD_WIDTH - 1000;
+        isGameOver            = false;
+        winMessage            = "";
+        resultTable.setVisible(false);
+    }
+
+    /** Arranca desde el nivel indicado (usado por Nueva partida y Continuar). */
+    private void startFromLevel(int level, int slot) {
+        activeSlot   = slot;
+        currentLevel = level;
+        applyLevelConfig();
+        startCombat();
+    }
+
+    private void startDuel() {
+        activeSlot   = -1; // duelo no guarda progreso
+        currentLevel =  1;
+        player1.name = CHAR_NAMES[duelP1];
+        player2.name = CHAR_NAMES[duelP2];
+        // En duelo usamos configuración de nivel 1 para la IA
+        applyLevelConfig();
+        startCombat();
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -239,9 +433,9 @@ public class Main extends ApplicationAdapter {
     // ══════════════════════════════════════════════════════════════════════════
 
     private void setupMenuUI() {
-        mainMenuTable  = new Table(); mainMenuTable.setFillParent(true);
-        newGameTable   = new Table(); newGameTable.setFillParent(true);
-        continueTable  = new Table(); continueTable.setFillParent(true);
+        mainMenuTable   = new Table(); mainMenuTable.setFillParent(true);
+        newGameTable    = new Table(); newGameTable.setFillParent(true);
+        continueTable   = new Table(); continueTable.setFillParent(true);
         charSelectTable = new Table(); charSelectTable.setFillParent(true);
 
         stage.addActor(mainMenuTable);
@@ -250,7 +444,7 @@ public class Main extends ApplicationAdapter {
         stage.addActor(charSelectTable);
 
         hideAllMenus();
-        buildMainMenu(); // El menú principal es estático, se construye una vez
+        buildMainMenu();
     }
 
     private void hideAllMenus() {
@@ -301,11 +495,15 @@ public class Main extends ApplicationAdapter {
 
         for (int i = 0; i < MAX_SLOTS; i++) {
             final int slot = i;
-            TextButton btn = new TextButton(slotLabel(i), slotExists(i) ? redStyle() : fightStyle());
+            String label = slotExists(i)
+                ? "Ranura " + (i+1) + "  -  OCUPADA [SOBREESCRIBIR]"
+                : "Ranura " + (i+1) + "  -  VACIA";
+            TextButton btn = new TextButton(label, slotExists(i) ? redStyle() : fightStyle());
             btn.addListener(new ClickListener() {
                 @Override public void clicked(InputEvent e, float x, float y) {
-                    saveSlot(slot, "Guerrero", 0);
-                    startGame();
+                    // Nueva partida siempre empieza en nivel 1
+                    saveSlotFull(slot, "Guerrero", 0, 1);
+                    startFromLevel(1, slot);
                 }
             });
             newGameTable.add(btn).size(900, 130).padBottom(20).row();
@@ -336,8 +534,8 @@ public class Main extends ApplicationAdapter {
             TextButton btnLoad = new TextButton(slotLabel(i) + "  > JUGAR", fightStyle());
             btnLoad.addListener(new ClickListener() {
                 @Override public void clicked(InputEvent e, float x, float y) {
-                    loadSlot(slot);
-                    startGame();
+                    int level = prefs.getInteger("slot_" + slot + "_level", 1);
+                    startFromLevel(level, slot);
                 }
             });
 
@@ -345,7 +543,7 @@ public class Main extends ApplicationAdapter {
             btnDel.addListener(new ClickListener() {
                 @Override public void clicked(InputEvent e, float x, float y) {
                     deleteSlot(slot);
-                    showContinueMenu(); // refresca la pantalla
+                    showContinueMenu();
                 }
             });
 
@@ -372,8 +570,7 @@ public class Main extends ApplicationAdapter {
 
     private void showCharSelect() {
         currentState = GameState.CHAR_SELECT;
-        duelP1 = -1;
-        duelP2 = -1;
+        duelP1 = -1; duelP2 = -1;
         hideAllMenus();
         charSelectTable.clear();
         charSelectTable.center();
@@ -387,7 +584,6 @@ public class Main extends ApplicationAdapter {
         vsRow.add(lblP2sel);
         charSelectTable.add(vsRow).padBottom(40).row();
 
-        // Grid de personajes — 3 por fila
         Table grid = new Table();
         for (int i = 0; i < CHAR_NAMES.length; i++) {
             final int idx = i;
@@ -406,7 +602,6 @@ public class Main extends ApplicationAdapter {
                 if (duelP1 >= 0 && duelP2 >= 0) startDuel();
             }
         });
-
         TextButton btnBack = new TextButton("VOLVER", dangerStyle());
         btnBack.addListener(new ClickListener() {
             @Override public void clicked(InputEvent e, float x, float y) { showMainMenu(); }
@@ -427,44 +622,10 @@ public class Main extends ApplicationAdapter {
             duelP2 = idx;
             lblP2sel.setText("J2: " + CHAR_NAMES[idx]);
         } else {
-            // Toca de nuevo para resetear
             duelP1 = -1; duelP2 = -1;
             lblP1sel.setText("J1: ---");
             lblP2sel.setText("J2: ---");
         }
-    }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    //  ARRANCAR PARTIDA
-    // ══════════════════════════════════════════════════════════════════════════
-
-    private void startGame() {
-        currentState = GameState.PLAYING;
-        hideAllMenus();
-        showGameUI();
-        resetGame();
-    }
-
-    private void startDuel() {
-        player1.name = CHAR_NAMES[duelP1];
-        player2.name = CHAR_NAMES[duelP2];
-        startGame();
-    }
-
-    private void loadSlot(int slot) {
-        player1.name = prefs.getString("slot_" + slot + "_name", "Abel");
-    }
-
-    private void resetGame() {
-        player1.currentHealth = player1.maxHealth;
-        player1.comboCharge   = 0;
-        player1.x             = 200;
-        player2.currentHealth = player2.maxHealth;
-        player2.comboCharge   = 0;
-        player2.x             = WORLD_WIDTH - 1000;
-        isGameOver            = false;
-        winMessage            = "";
-        endGameTable.setVisible(false);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -475,10 +636,11 @@ public class Main extends ApplicationAdapter {
         return prefs.getBoolean("slot_" + slot + "_exists", false);
     }
 
-    private void saveSlot(int slot, String name, int wins) {
+    private void saveSlotFull(int slot, String name, int wins, int level) {
         prefs.putBoolean("slot_" + slot + "_exists", true);
         prefs.putString( "slot_" + slot + "_name",   name);
         prefs.putInteger("slot_" + slot + "_wins",   wins);
+        prefs.putInteger("slot_" + slot + "_level",  level);
         prefs.flush();
     }
 
@@ -486,18 +648,20 @@ public class Main extends ApplicationAdapter {
         prefs.remove("slot_" + slot + "_exists");
         prefs.remove("slot_" + slot + "_name");
         prefs.remove("slot_" + slot + "_wins");
+        prefs.remove("slot_" + slot + "_level");
         prefs.flush();
     }
 
     private String slotLabel(int slot) {
         if (!slotExists(slot)) return "Ranura " + (slot + 1) + "  -  VACIA";
-        String name = prefs.getString( "slot_" + slot + "_name", "?");
-        int    wins = prefs.getInteger("slot_" + slot + "_wins",  0);
-        return "Ranura " + (slot + 1) + "  -  " + name + "   Victorias: " + wins;
+        String name  = prefs.getString( "slot_" + slot + "_name",  "?");
+        int    wins  = prefs.getInteger("slot_" + slot + "_wins",   0);
+        int    level = prefs.getInteger("slot_" + slot + "_level",  1);
+        return "Ranura " + (slot+1) + "  |  " + name + "  |  Nivel " + level + "  |  Victorias: " + wins;
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  RENDER  (sin cambios salvo el título en menús)
+    //  RENDER
     // ══════════════════════════════════════════════════════════════════════════
 
     @Override
@@ -521,15 +685,7 @@ public class Main extends ApplicationAdapter {
             player1.draw(batch);
             player2.draw(batch);
             drawUI();
-            if (isGameOver) {
-                layout.setText(bigFont, winMessage);
-                bigFont.setColor(winMessage.equals("Game Over") ? Color.RED : Color.YELLOW);
-                bigFont.draw(batch, winMessage,
-                    (viewport.getWorldWidth()  - layout.width)  / 2f,
-                    (viewport.getWorldHeight() + layout.height) / 2f);
-            }
         } else {
-            // Título visible en todos los menús
             drawMenuTitle();
         }
 
@@ -545,6 +701,18 @@ public class Main extends ApplicationAdapter {
         bigFont.draw(batch, title,
             (viewport.getWorldWidth() - layout.width) / 2f,
             viewport.getWorldHeight() - 80);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  LÓGICA DE COMBATE
+    // ══════════════════════════════════════════════════════════════════════════
+
+    private void checkGameOver() {
+        if (player1.currentHealth <= 0) {
+            showResult(false); // derrota
+        } else if (player2.currentHealth <= 0) {
+            showResult(true);  // victoria
+        }
     }
 
     private void handlePlayerMovement(float delta) {
@@ -569,10 +737,21 @@ public class Main extends ApplicationAdapter {
         float margin = 80, barW = 750, barH = 55;
         float yPos   = viewport.getWorldHeight() - 130;
 
+        // Indicador de nivel (centro arriba)
+        String lvlText = "NIVEL  " + currentLevel;
+        layout.setText(nameFont, lvlText);
+        nameFont.setColor(Color.YELLOW);
+        nameFont.draw(batch, lvlText,
+            (viewport.getWorldWidth() - layout.width) / 2f,
+            viewport.getWorldHeight() - 30);
+        nameFont.setColor(Color.WHITE);
+
+        // Barras jugador 1
         nameFont.draw(batch, player1.name, margin, yPos + 75);
         drawBar(margin, yPos,      barW, barH, player1.currentHealth / player1.maxHealth, Color.GREEN);
         drawBar(margin, yPos - 35, barW, 20,   player1.comboCharge   / 100f,              Color.GOLD);
 
+        // Barras jugador 2
         float x2 = viewport.getWorldWidth() - margin - barW;
         layout.setText(nameFont, player2.name);
         nameFont.draw(batch, player2.name, viewport.getWorldWidth() - margin - layout.width, yPos + 75);
@@ -584,18 +763,6 @@ public class Main extends ApplicationAdapter {
         batch.setColor(Color.RED);   batch.draw(whiteTexture, x, y, w, h);
         batch.setColor(c);           batch.draw(whiteTexture, x, y, w * Math.max(0, pct), h);
         batch.setColor(Color.WHITE);
-    }
-
-    private void checkGameOver() {
-        if (player1.currentHealth <= 0) {
-            isGameOver = true; winMessage = "Game Over";
-            endGameBtn.setText("REVANCHA");
-            endGameTable.setVisible(true);
-        } else if (player2.currentHealth <= 0) {
-            isGameOver = true; winMessage = "VICTORIA!";
-            endGameBtn.setText("SIGUIENTE NIVEL");
-            endGameTable.setVisible(true);
-        }
     }
 
     @Override
