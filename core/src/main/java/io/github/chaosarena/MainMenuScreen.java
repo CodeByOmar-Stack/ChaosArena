@@ -7,6 +7,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -52,11 +53,25 @@ public class MainMenuScreen extends ScreenAdapter {
         TextButton btnArcade = new TextButton("MODO ARCADE", game.fightStyle()); 
         TextButton btnRanking = new TextButton("RANKING ARCADE", game.goldStyle());
 
+        ImageButton btnMute = new ImageButton(game.soundButtonStyle());
+        btnMute.setChecked(game.prefs.getBoolean("is_muted", false));
+
         btnNew.addListener(new ClickListener() { @Override public void clicked(InputEvent e, float x, float y) { showNewGameMenu(); } });
         btnContinue.addListener(new ClickListener() { @Override public void clicked(InputEvent e, float x, float y) { showContinueMenu(); } });
         btnDuel.addListener(new ClickListener() { @Override public void clicked(InputEvent e, float x, float y) { game.setScreen(new CharacterSelectScreen(game, -1)); } });
         btnArcade.addListener(new ClickListener() { @Override public void clicked(InputEvent e, float x, float y) { game.setScreen(new CharacterSelectScreen(game, -2)); } });
         btnRanking.addListener(new ClickListener() { @Override public void clicked(InputEvent e, float x, float y) { showRankingMenu(); } });
+        btnMute.addListener(new ClickListener() { @Override public void clicked(InputEvent e, float x, float y) {
+            boolean isMuted = game.prefs.getBoolean("is_muted", false);
+            game.prefs.putBoolean("is_muted", !isMuted);
+            game.prefs.flush();
+            btnMute.setChecked(!isMuted);
+            if (game.music != null) {
+                game.music.setVolume(!isMuted ? 0f : 0.8f);
+            }
+        } });
+
+
 
         Table box = new Table();
         box.setBackground(new TextureRegionDrawable(game.whiteTexture).tint(new Color(0,0,0,0.5f)));
@@ -69,6 +84,12 @@ public class MainMenuScreen extends ScreenAdapter {
         box.add(btnRanking).size(500, 80);
         
         mainMenuTable.add(box);
+        
+        Table overlayTable = new Table();
+        overlayTable.setFillParent(true);
+        overlayTable.bottom().right().pad(20);
+        overlayTable.add(btnMute).size(120, 120);
+        mainMenuTable.addActor(overlayTable);
     }
 
     private void showMainMenu() {

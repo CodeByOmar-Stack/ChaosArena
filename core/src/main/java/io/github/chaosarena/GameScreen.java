@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
@@ -47,6 +48,10 @@ public class GameScreen extends ScreenAdapter {
     private TextButton btnResultAction, btnResultMenu;
     private StageDef currentStage;
 
+    // --- ROGUELIKE ---
+    private RunManager runManager;
+    private Table buffSelectionTable;
+
     public GameScreen(Main game, int level, int slot, String p1Name, String p2Name, int stageIdx) {
         this.game = game;
         this.currentLevel = level;
@@ -76,9 +81,11 @@ public class GameScreen extends ScreenAdapter {
 
         setupGameUI();
         setupPauseMenu();
+        setupBuffUI();
 
         if (slot >= 0 || slot == -2) {
             if (slot == -2) {
+                runManager = new RunManager(player1);
                 applyArcadeConfig();
             } else {
                 applyLevelConfig();
@@ -119,25 +126,22 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void applyArcadeConfig() {
-        int cycle = (currentLevel - 1) / 3; 
-        int idx = (currentLevel - 1) % 3;
-        
-        float difficultyMultiplier = 1.0f + (cycle * 0.25f);
-        
-        String charType = Main.CHAR_NAMES[MathUtils.random(0, Main.CHAR_NAMES.length - 1)];
+        String charType = Main.CHAR_NAMES[com.badlogic.gdx.math.MathUtils.random(0, Main.CHAR_NAMES.length - 1)];
         player2.name = charType;
         player2.charType = charType;
         player2.setAtlas(game.getAtlasForChar(charType), game.getPrefixForChar(charType), game.viewport.getWorldHeight());
         player2.y = currentStage.groundY + currentStage.getOffsetFor(charType);
         player2.groundY = player2.y;
 
-        player2.maxHealth = 250f; // Misma vida base
+        player2.maxHealth = 250f;
         player2.currentHealth = player2.maxHealth;
         
-        // Lo que lo hace difícil es su hiper-velocidad y reacción según avanza el ciclo
-        enemyAI.setSpeed(Main.LEVEL_ENEMY_SPEED[idx] * (1.0f + cycle * 0.15f));
-        enemyAI.setDamage(Main.LEVEL_ENEMY_DAMAGE[idx]); // Daño base normal
-        enemyAI.setAttackRate(Math.max(0.25f, Main.LEVEL_ATTACK_RATE[idx] - (cycle * 0.25f)));
+        // Base normal, el RunManager escala luego
+        enemyAI.setSpeed(350f);
+        enemyAI.setDamage(10f); 
+        enemyAI.setAttackRate(1.5f);
+
+        runManager.applyEnemyScaling(enemyAI, player2);
     }
 
     private void setupLoreUI() {
@@ -261,16 +265,106 @@ public class GameScreen extends ScreenAdapter {
 
         Label lblPause = new Label("PAUSA", new Label.LabelStyle(game.bigFont, Color.YELLOW));
         TextButton btnResume = new TextButton("CONTINUAR", game.fightStyle());
+        ImageButton btnMute = new ImageButton(game.soundButtonStyle());
+        btnMute.setChecked(game.prefs.getBoolean("is_muted", false));
         TextButton btnExit = new TextButton("SALIR AL MENU", game.dangerStyle());
 
         btnResume.addListener(new ClickListener() { @Override public void clicked(InputEvent e, float x, float y) { togglePause(); } });
+        btnMute.addListener(new ClickListener() { @Override public void clicked(InputEvent e, float x, float y) {
+            boolean isMuted = game.prefs.getBoolean("is_muted", false);
+            game.prefs.putBoolean("is_muted", !isMuted);
+            game.prefs.flush();
+            btnMute.setChecked(!isMuted);
+            if (game.music != null) {
+                game.music.setVolume(!isMuted ? 0f : 0.8f);
+            }
+        } });
         btnExit.addListener(new ClickListener() { @Override public void clicked(InputEvent e, float x, float y) { game.setScreen(new MainMenuScreen(game)); } });
 
         pauseTable.add(lblPause).padBottom(60).row();
         pauseTable.add(btnResume).size(600, 150).padBottom(30).row();
+        pauseTable.add(btnMute).size(150, 150).padBottom(30).row();
         pauseTable.add(btnExit).size(600, 150);
         pauseTable.setVisible(false);
         stage.addActor(pauseTable);
+
+
+    }
+
+    private void setupBuffUI() {
+        buffSelectionTable = new Table();
+        buffSelectionTable.setFillParent(true);
+        buffSelectionTable.center();
+        buffSelectionTable.setBackground(new TextureRegionDrawable(game.whiteTexture).tint(new Color(0,0,0,0.85f)));
+        buffSelectionTable.setVisible(false);
+        stage.addActor(buffSelectionTable);
+    }
+
+    private void showBuffSelection() {
+        isGameOver = true;
+        uiRootTable.setVisible(false);
+        buffSelectionTable.clear();
+        
+        Label title = new Label("ELIGE UNA MEJORA", new Label.LabelStyle(game.bigFont, Color.GOLD));
+        Label subtitle = new Label("Las mejoras que NO elijas se las quedará el enemigo...", new Label.LabelStyle(game.font, Color.RED));
+        buffSelectionTable.add(title).padBottom(20).row();
+        buffSelectionTable.add(subtitle).padBottom(50).row();
+
+        final java.util.List<Buff> choices = runManager.getRandomBuffChoices();
+        for (final Buff buff : choices) {
+            String text = buff.getDescription() + " (" + (int)(buff.value * (buff.value < 1 ? 100 : 1)) + (buff.value < 1 ? "%" : "") + ")";
+            
+            Color fontColor = Color.WHITE;
+            if (buff.rarity == Buff.Rarity.EPIC) {
+                fontColor = Color.YELLOW;
+            } else if (buff.rarity == Buff.Rarity.RARE) {
+                fontColor = Color.CYAN;
+            }
+
+            TextButton btn = new TextButton(text, game.buffStyle(fontColor));
+            btn.addListener(new ClickListener() {
+                @Override public void clicked(InputEvent e, float x, float y) {
+                    runManager.applyBuffToPlayer(buff);
+                    // Los que no elegiste van para el enemigo
+                    for (Buff other : choices) {
+                        if (other != buff) {
+                            runManager.addPendingEnemyBuff(other);
+                        }
+                    }
+                    buffSelectionTable.setVisible(false);
+                    checkNextEventOrContinue();
+                }
+            });
+            // Apilamos uno debajo del otro y ocupamos buen ancho
+            buffSelectionTable.add(btn).size(600, 100).padBottom(15).row();
+        }
+        buffSelectionTable.setVisible(true);
+    }
+
+    private void checkNextEventOrContinue() {
+        if (runManager.shouldTriggerEvent()) {
+            Event event = runManager.generateRandomEvent();
+            event.apply(runManager);
+            
+            buffSelectionTable.clear();
+            Label title = new Label("EVENTO ESPECIAL", new Label.LabelStyle(game.bigFont, Color.MAGENTA));
+            Label desc = new Label(event.description, new Label.LabelStyle(game.font, Color.WHITE));
+            TextButton btnOk = new TextButton("CONTINUAR", game.fightStyle());
+            
+            btnOk.addListener(new ClickListener() {
+                @Override public void clicked(InputEvent e, float x, float y) {
+                    buffSelectionTable.setVisible(false);
+                    resetCombat();
+                }
+            });
+            
+            buffSelectionTable.add(title).padBottom(30).row();
+            buffSelectionTable.add(desc).padBottom(50).row();
+            buffSelectionTable.add(btnOk).size(500, 150);
+            buffSelectionTable.setVisible(true);
+        } else {
+            resetCombat();
+        }
     }
 
     private void togglePause() {
@@ -313,24 +407,41 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void showResult(boolean won) {
+        player1.forceIdle();
+        player2.forceIdle();
         lastBattleWon = won;
         isGameOver = true; uiRootTable.setVisible(false);
         
         if (activeSlot == -2) {
             if (won) {
                 enemiesDefeated++;
+                runManager.onFightWon();
                 lblResultTitle.setText("¡RIVAL DERROTADO!");
                 lblResultTitle.setColor(Color.GOLD);
-                btnResultAction.setText("SIGUIENTE COMBATE");
+                btnResultAction.setText("ELEGIR MEJORA");
+                
+                // Redefinimos listener temporalmente
+                btnResultAction.clearListeners();
+                btnResultAction.addListener(new ClickListener() { 
+                    @Override public void clicked(InputEvent e, float x, float y) { 
+                        resultTable.setVisible(false);
+                        showBuffSelection();
+                    } 
+                });
             } else {
                 lblResultTitle.setText("FIN DEL JUEGO");
                 lblResultTitle.setColor(Color.RED);
                 btnResultAction.setText("GUARDAR Y SALIR");
+                btnResultAction.clearListeners();
+                btnResultAction.addListener(new ClickListener() { @Override public void clicked(InputEvent e, float x, float y) { resetCombat(); } });
                 saveArcadeScore();
             }
         } else {
             lblResultTitle.setText(won ? "¡VICTORIA!" : "DERROTA");
             lblResultTitle.setColor(won ? Color.GOLD : Color.RED);
+            
+            btnResultAction.clearListeners();
+            btnResultAction.addListener(new ClickListener() { @Override public void clicked(InputEvent e, float x, float y) { resetCombat(); } });
             
             if (won && activeSlot >= 0) {
                 if (currentLevel >= Main.MAX_LEVELS) {
@@ -365,18 +476,19 @@ public class GameScreen extends ScreenAdapter {
                 } else if (activeSlot == -2) {
                     timeLeft += 30f;
                     feedbackTimer = 2f;
-                    feedbackMsg = "+30s | +15% VIDA";
+                    feedbackMsg = "+30s | Siguiente pelea";
                 }
             }
         }
         
         isGameOver = false; isPaused = false;
         resultTable.setVisible(false); pauseTable.setVisible(false); uiRootTable.setVisible(true);
+        if (buffSelectionTable != null) buffSelectionTable.setVisible(false);
         
         if (activeSlot >= 0 || activeSlot == -2) {
             if (activeSlot == -2) {
+                currentStage = game.stages[com.badlogic.gdx.math.MathUtils.random(0, game.stages.length - 1)];
                 applyArcadeConfig();
-                currentStage = game.stages[MathUtils.random(0, game.stages.length - 1)];
             } else {
                 applyLevelConfig();
                 currentStage = game.stages[Math.min(currentLevel - 1, game.stages.length - 1)];
@@ -384,8 +496,9 @@ public class GameScreen extends ScreenAdapter {
         }
         
         if (activeSlot == -2 && lastBattleWon) {
-            player1.currentHealth = Math.min(player1.maxHealth, player1.currentHealth + (player1.maxHealth * 0.15f));
             player1.comboCharge = 0;
+            // La salud no se regenera automáticamente un 15% como antes
+            // Ahora dependemos de Buffs y Eventos para la curación (RunManager)
         } else {
             player1.currentHealth = player1.maxHealth; 
             player1.comboCharge = 0;
@@ -440,7 +553,7 @@ public class GameScreen extends ScreenAdapter {
             }
 
             float ix = joystick.getKnobPercentX();
-            if (ix > 0.2f) player1.move(850 * delta); if (ix < -0.2f) player1.move(-850 * delta);
+            if (ix > 0.2f) player1.move(850 * player1.speedMultiplier * delta); if (ix < -0.2f) player1.move(-850 * player1.speedMultiplier * delta);
             player1.updateDirection(ix > 0.2f, ix < -0.2f);
             player1.update(delta); player2.update(delta); enemyAI.update(delta);
             
@@ -453,10 +566,25 @@ public class GameScreen extends ScreenAdapter {
             if (player1.currentHealth <= 0) showResult(false); else if (player2.currentHealth <= 0) showResult(true);
         }
 
+        if (player1.isAttacking() && player1.getCurrentAttackType() == Player.AttackType.SPECIAL) {
+            game.viewport.getCamera().position.x = game.viewport.getWorldWidth()/2 + com.badlogic.gdx.math.MathUtils.random(-15f, 15f);
+            game.viewport.getCamera().position.y = game.viewport.getWorldHeight()/2 + com.badlogic.gdx.math.MathUtils.random(-15f, 15f);
+        } else {
+            game.viewport.getCamera().position.set(game.viewport.getWorldWidth()/2, game.viewport.getWorldHeight()/2, 0);
+        }
+        game.viewport.getCamera().update();
         game.batch.setProjectionMatrix(game.viewport.getCamera().combined);
         game.batch.begin();
+        
         float pShiftX = (player1.x / game.viewport.getWorldWidth()) * 300f;
         game.batch.draw(currentStage.bgTexture, -pShiftX, currentStage.floorVisualOffset, game.viewport.getWorldWidth() + 300f, game.viewport.getWorldHeight());
+        
+        if (player1.isAttacking() && player1.getCurrentAttackType() == Player.AttackType.SPECIAL) {
+            game.batch.setColor(new Color(0.5f, 0.0f, 0.0f, 0.5f));
+            game.batch.draw(game.whiteTexture, -500, -500, game.viewport.getWorldWidth() + 1000, game.viewport.getWorldHeight() + 1000);
+            game.batch.setColor(Color.WHITE);
+        }
+        
         player1.draw(game.batch, fDelta); player2.draw(game.batch, fDelta);
         drawBars();
         game.batch.end();

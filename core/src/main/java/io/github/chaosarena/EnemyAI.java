@@ -65,11 +65,21 @@ public class EnemyAI {
         }
 
         // Nueva mecánica PRO: "Esquiva/bloqueo dinámico"
-        // Si el jugador está atacando, estamos cerca y no podemos golpear nosotros, tenemos alta chance de retroceder
-        if (target.isAttacking() && absDist < 250 && currentState != State.RETREAT && attackCooldownTimer > 0) {
-            if (MathUtils.randomBoolean(0.7f)) { // 70% de chance de reaccionar como un pro
-                currentState = State.RETREAT;
-                stateTimer = 0.4f;
+        // Si el jugador está atacando
+        if (target.isAttacking()) {
+            boolean isPlayerSpecial = target.getCurrentAttackType() == Player.AttackType.SPECIAL;
+            
+            if (isPlayerSpecial) {
+                // El ataque especial tiene mucho rango, la IA intentará retroceder siempre
+                if (currentState != State.RETREAT) {
+                    currentState = State.RETREAT;
+                    stateTimer = 0.5f;
+                }
+            } else if (absDist < 250 && currentState != State.RETREAT && attackCooldownTimer > 0) {
+                if (MathUtils.randomBoolean(0.7f)) { // 70% de chance de reaccionar como un pro
+                    currentState = State.RETREAT;
+                    stateTimer = 0.4f;
+                }
             }
         }
 

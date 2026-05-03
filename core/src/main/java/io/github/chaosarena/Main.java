@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
@@ -38,6 +39,7 @@ public class Main extends Game {
     public BitmapFont font, bigFont;
     public Texture bgForest, bgCity, bgDesert, bgTitle, whiteTexture, circleTexture;
     public Texture joystickBg, joystickKnob;
+    public Texture soundOnIcon, soundOffIcon, buttonBg;
     public Music music;
     public StageDef[] stages;
     public final GlyphLayout layout = new GlyphLayout();
@@ -51,7 +53,9 @@ public class Main extends Game {
         setupTextures();
         try {
             music = Gdx.audio.newMusic(Gdx.files.internal("sounds/Techno_Syndrome.mp3"));
-            music.setLooping(true); music.setVolume(0.8f); music.play();
+            music.setLooping(true);
+            music.setVolume(prefs.getBoolean("is_muted", false) ? 0f : 0.8f);
+            music.play();
         } catch (Exception e) {}
         setScreen(new MainMenuScreen(this));
     }
@@ -73,6 +77,10 @@ public class Main extends Game {
         bgTitle = new Texture("backgrounds/title_bg.png");
         joystickBg = new Texture("joystick/AIR_joystick_bg600.png");
         joystickKnob = new Texture("joystick/AIR_joystick_stick600.png");
+
+        soundOnIcon = new Texture("ui/sound_on.png");
+        soundOffIcon = new Texture("ui/sound_off.png");
+        buttonBg = new Texture("ui/button_bg.png");
 
         // En Main.java, dentro de setupTextures()
         stages = new StageDef[] {
@@ -119,6 +127,21 @@ public class Main extends Game {
     public TextButton.TextButtonStyle redStyle() { return makeStyle(new Color(0.55f, 0.05f, 0.05f, 0.9f)); }
     public TextButton.TextButtonStyle goldStyle() { return makeStyle(new Color(0.45f, 0.35f, 0.0f, 0.9f)); }
     public TextButton.TextButtonStyle dangerStyle() { return makeStyle(new Color(0.25f, 0.0f, 0.0f, 0.85f)); }
+
+    public TextButton.TextButtonStyle buffStyle(Color fontColor) {
+        TextButton.TextButtonStyle s = new TextButton.TextButtonStyle();
+        s.font = font;
+        s.fontColor = fontColor;
+        s.up = new TextureRegionDrawable(buttonBg);
+        return s;
+    }
+
+    public ImageButton.ImageButtonStyle soundButtonStyle() {
+        ImageButton.ImageButtonStyle s = new ImageButton.ImageButtonStyle();
+        s.imageUp = new TextureRegionDrawable(soundOnIcon);
+        s.imageChecked = new TextureRegionDrawable(soundOffIcon);
+        return s;
+    }
 
     @Override public void dispose() { super.dispose(); batch.dispose(); }
 }

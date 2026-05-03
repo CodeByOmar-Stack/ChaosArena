@@ -45,6 +45,11 @@ public class Player {
     public float maxHealth = 250, currentHealth = 250, comboCharge = 0;
     public final float MAX_COMBO_CHARGE = 100;
     public float damageMultiplier = 1.0f;
+    public float speedMultiplier = 1.0f;
+    public float lifestealPercent = 0f;
+    public float armorPercent = 0f;
+    public float criticalChance = 0f;
+    public float regenPerSec = 0f;
     public boolean facingRight;
     public Player opponent;
     public boolean hasHitInCurrentAttack = false;
@@ -172,6 +177,16 @@ public class Player {
             if (hurtAnim.isAnimationFinished(hurtTime))
                 currentState = State.IDLE;
         }
+
+        if (regenPerSec > 0 && currentHealth > 0 && currentHealth < maxHealth) {
+            currentHealth = Math.min(maxHealth, currentHealth + (regenPerSec * delta));
+        }
+    }
+
+    public void forceIdle() {
+        currentState = State.IDLE;
+        attackTime = 0;
+        hurtTime = 0;
     }
 
     public void jump() {
@@ -208,7 +223,8 @@ public class Player {
     }
 
     public void takeDamage(float amount, float knockback) {
-        currentHealth = Math.max(0, currentHealth - amount);
+        float reducedAmount = amount * Math.max(0, (1.0f - armorPercent));
+        currentHealth = Math.max(0, currentHealth - reducedAmount);
         currentState = State.HURT;
         hurtTime = 0;
         
@@ -223,6 +239,10 @@ public class Player {
 
     public boolean isAttacking() {
         return currentState == State.ATTACKING;
+    }
+    
+    public AttackType getCurrentAttackType() {
+        return currentAttackType;
     }
 
     public boolean isHurt() {
@@ -243,7 +263,7 @@ public class Player {
     public boolean canHit(Player other) {
         if (currentState != State.ATTACKING) return false;
         Rectangle body = getHitbox();
-        float reach = (currentAttackType == AttackType.KICK ? 400 : currentAttackType == AttackType.SPECIAL ? 500 : 300);
+        float reach = (currentAttackType == AttackType.KICK ? 400 : currentAttackType == AttackType.SPECIAL ? 700 : 300);
         float attackX = facingRight ? body.x + body.width : body.x - reach;
         Rectangle attackArea = new Rectangle(attackX, body.y, reach, body.height);
         return attackArea.overlaps(other.getHitbox());
@@ -277,15 +297,21 @@ public class Player {
             } else {
                 if (!hasHitInCurrentAttack && canHit(opponent)) {
                     float hitTime = (currentAttackType == AttackType.SPECIAL)
-                            ? 0.15f // Impacto temprano: a los 0.15s de iniciar la animación (casi de inmediato)
+                            ? totalDuration * 0.45f // Sincronizado exactamente con el marco visual del golpe fuerte
                             : totalDuration / 2f;
 
                     if (attackTime > hitTime) {
                         float baseDmg = (currentAttackType == AttackType.SPECIAL) ? 45f : (currentAttackType == AttackType.KICK) ? 15f : 10f;
                         float knockback = (currentAttackType == AttackType.SPECIAL) ? 120f : (currentAttackType == AttackType.KICK) ? 80f : 45f;
                         float dmg = baseDmg * damageMultiplier;
+                        if (com.badlogic.gdx.math.MathUtils.random() < criticalChance) {
+                            dmg *= 2f; // Daño crítico
+                        }
                         if (currentAttackType != AttackType.SPECIAL) addCharge(dmg);
                         opponent.takeDamage(dmg, knockback);
+                        if (lifestealPercent > 0) {
+                            currentHealth = Math.min(maxHealth, currentHealth + (dmg * lifestealPercent));
+                        }
                         hasHitInCurrentAttack = true;
                     }
                 }
