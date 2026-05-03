@@ -3,16 +3,21 @@ package io.github.chaosarena;
 import com.badlogic.gdx.math.MathUtils;
 
 /**
- * Inteligencia Artificial avanzada para el enemigo.
+ * Inteligencia Artificial avanzada para el enemigo (FSM).
  * Controla al NPC de forma autónoma, buscando distancias y atacando estratégicamente.
  */
 public class EnemyAI {
+
+    public enum State {
+        IDLE, CHASE, ATTACK, RETREAT, COOLDOWN
+    }
+
     private final Player npc;
     private final Player target;
 
-    private float decisionTimer  = 0;
-    private float attackCooldown = 0;
-    private String currentStrategy = "APPROACH"; // APPROACH, RETREAT, IDLE, ATTACK
+    private State currentState = State.IDLE;
+    private float stateTimer = 0f;
+    private float attackCooldownTimer = 0f;
 
     // ── Parámetros de dificultad (configurables por nivel desde Main) ──────────
     private float speed      = 350f;
@@ -24,97 +29,147 @@ public class EnemyAI {
         this.target = target;
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  GETTERS / SETTERS  (llamados desde Main.applyLevelConfig)
-    // ══════════════════════════════════════════════════════════════════════════
-
     public void setSpeed(float speed)           { this.speed = speed; }
-    public void setDamage(float damage)         { this.damage = damage; }
+    public void setDamage(float damage)         { 
+        this.damage = damage; 
+        this.npc.damageMultiplier = damage / 10f; // Escala el daño base del Player (golpe base es 10)
+    }
     public void setAttackRate(float attackRate) { this.attackRate = attackRate; }
 
     public float getSpeed()      { return speed; }
     public float getDamage()     { return damage; }
     public float getAttackRate() { return attackRate; }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  BUCLE PRINCIPAL
-    // ══════════════════════════════════════════════════════════════════════════
-
     public void update(float delta) {
-        // Si alguien ha muerto, la IA deja de procesar
         if (npc.currentHealth <= 0 || target.currentHealth <= 0) return;
 
         float dist    = target.x - npc.x;
         float absDist = Math.abs(dist);
 
-        if (decisionTimer  > 0) decisionTimer  -= delta;
-        if (attackCooldown > 0) attackCooldown -= delta;
+        if (stateTimer > 0) stateTimer -= delta;
+        if (attackCooldownTimer > 0) attackCooldownTimer -= delta;
 
-        // 1. Orientación: siempre mira al jugador si no está atacando
-        if (!npc.isAttacking()) {
+        // Orientación: siempre mira al jugador si no está atacando
+        if (!npc.isAttacking() && currentState != State.RETREAT) {
+            npc.facingRight = dist > 0;
+        } else if (!npc.isAttacking() && currentState == State.RETREAT) {
+            // Retrocediendo pero sin dar la espalda en un juego de lucha 2D
             npc.facingRight = dist > 0;
         }
 
-        // 2. Selección de estrategia
-        if (decisionTimer <= 0) {
-            decisionTimer = 0.3f + MathUtils.random(0.4f);
+        // Interrupción: si el NPC fue golpeado
+        if (npc.isHurt()) {
+            currentState = State.IDLE;
+            stateTimer = 0.2f;
+            return;
+        }
 
-            if (absDist > 300) {
-                currentStrategy = "APPROACH";
-            } else if (absDist < 150) {
-                currentStrategy = "RETREAT";
-            } else {
-                currentStrategy = MathUtils.randomBoolean(0.8f) ? "ATTACK" : "IDLE";
+        // Nueva mecánica PRO: "Esquiva/bloqueo dinámico"
+        // Si el jugador está atacando, estamos cerca y no podemos golpear nosotros, tenemos alta chance de retroceder
+        if (target.isAttacking() && absDist < 250 && currentState != State.RETREAT && attackCooldownTimer > 0) {
+            if (MathUtils.randomBoolean(0.7f)) { // 70% de chance de reaccionar como un pro
+                currentState = State.RETREAT;
+                stateTimer = 0.4f;
             }
         }
 
-        // 3. Movimiento — usa la variable speed (píxeles/seg × delta)
-        if (!npc.isAttacking()) {
-            float step = speed * delta;
-            if (currentStrategy.equals("APPROACH")) {
-                npc.move(dist > 0 ? step : -step);
-            } else if (currentStrategy.equals("RETREAT")) {
-                npc.move(dist > 0 ? -step : step);
-            }
-        }
+        // --- MÁQUINA DE ESTADOS FINITOS (FSM) ---
+        switch (currentState) {
+            case IDLE:
+                if (stateTimer <= 0) {
+                    decideNextState(absDist);
+                }
+                break;
+                
+            case CHASE:
+                if (absDist < 250) {
+                    if (attackCooldownTimer <= 0) {
+                        currentState = State.ATTACK;
+                    } else {
+                        // Espera "timing humano" antes de decidir otra cosa
+                        currentState = State.IDLE;
+                        stateTimer = 0.2f + MathUtils.random(0.3f);
+                    }
+                } else if (stateTimer <= 0) {
+                    decideNextState(absDist);
+                } else if (!npc.isAttacking()) {
+                    npc.move(dist > 0 ? speed * delta : -speed * delta);
+                }
+                break;
 
-        // 4. Ataque — el cooldown base ahora viene de attackRate
-        if (absDist < 300 && attackCooldown <= 0 && !npc.isAttacking()) {
-            executeProAttack(absDist);
+            case RETREAT:
+                if (stateTimer <= 0) {
+                    currentState = State.IDLE;
+                    stateTimer = 0.1f + MathUtils.random(0.2f);
+                } else if (!npc.isAttacking()) {
+                    // Moverse en dirección opuesta al objetivo
+                    npc.move(dist > 0 ? -speed * delta : speed * delta);
+                }
+                break;
+
+            case ATTACK:
+                if (!npc.isAttacking()) {
+                    executeProAttack(absDist);
+                    currentState = State.COOLDOWN;
+                    stateTimer = attackRate + MathUtils.random(-0.2f, 0.4f);
+                    attackCooldownTimer = stateTimer;
+                }
+                break;
+                
+            case COOLDOWN:
+                if (stateTimer <= 0) {
+                    currentState = State.IDLE;
+                } else if (!npc.isAttacking()) {
+                    // "Timing humano": Ocasionalmente retroceder mientras está en cooldown para ser menos predecible
+                    if (MathUtils.randomBoolean(0.015f)) { // Probabilidad por frame (~90% chance of triggering at 60fps within a second)
+                        currentState = State.RETREAT;
+                        stateTimer = MathUtils.random(0.3f, 0.6f);
+                    }
+                }
+                break;
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  LÓGICA DE ATAQUE
-    // ══════════════════════════════════════════════════════════════════════════
+    private void decideNextState(float absDist) {
+        if (absDist > 350) {
+            currentState = State.CHASE;
+            stateTimer = MathUtils.random(0.2f, 0.6f); // Más rápido
+        } else if (absDist < 180) {
+            // Está muy cerca: 30% de probabilidad de retroceder para hacer spacing
+            if (MathUtils.randomBoolean(0.30f)) {
+                currentState = State.RETREAT;
+                stateTimer = MathUtils.random(0.2f, 0.4f);
+            } else if (attackCooldownTimer <= 0) {
+                currentState = State.ATTACK;
+            } else {
+                currentState = State.IDLE;
+                stateTimer = 0.1f;
+            }
+        } else {
+            // Distancia media (rango de pateo o aproximación)
+            if (attackCooldownTimer <= 0) {
+                currentState = MathUtils.randomBoolean(0.8f) ? State.ATTACK : State.CHASE; // Más agresivo
+            } else {
+                currentState = MathUtils.randomBoolean(0.4f) ? State.RETREAT : State.IDLE;
+                stateTimer = MathUtils.random(0.1f, 0.3f);
+            }
+        }
+    }
 
     private void executeProAttack(float distance) {
         Player.AttackType type;
 
         if (npc.comboCharge >= npc.MAX_COMBO_CHARGE) {
             type = Player.AttackType.SPECIAL;
-        } else if (distance > 220) {
+        } else if (distance > 200) {
+            // A cierta distancia solo usa patadas por el mayor alcance
             type = Player.AttackType.KICK;
         } else {
-            type = MathUtils.randomBoolean() ? Player.AttackType.PUNCH : Player.AttackType.KICK;
+            // Muy cerca puede combinar patadas o puños
+            type = MathUtils.randomBoolean(0.6f) ? Player.AttackType.PUNCH : Player.AttackType.KICK;
         }
 
         npc.attack(type);
-
-        // Daño escalado por nivel: damage es el valor base configurado desde Main
-        if (npc.canHit(target)) {
-            if (type == Player.AttackType.PUNCH) {
-                target.takeDamage(damage);         // antes: 4 fijo
-                npc.addCharge(10);
-            } else if (type == Player.AttackType.KICK) {
-                target.takeDamage(damage * 1.75f); // antes: 7 fijo (~damage × 1.75)
-                npc.addCharge(15);
-            } else if (type == Player.AttackType.SPECIAL) {
-                target.takeDamage(damage * 6.25f); // antes: 25 fijo (~damage × 6.25)
-            }
-        }
-
-        // Cooldown entre ataques: base = attackRate con variación aleatoria de ±0.25s
-        attackCooldown = attackRate + MathUtils.random(-0.25f, 0.25f);
+        // El daño ahora se aplica automáticamente en el frame correcto de la animación en Player.java (escalado por damageMultiplier)
     }
 }

@@ -1,0 +1,265 @@
+
+samurai_atlas.png
+size: 2048,256
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+samurai_idle_01
+  rotate: false
+  xy: 2, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_idle_02
+  rotate: false
+  xy: 102, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_idle_03
+  rotate: false
+  xy: 202, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_idle_04
+  rotate: false
+  xy: 302, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_idle_05
+  rotate: false
+  xy: 402, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_idle_06
+  rotate: false
+  xy: 502, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_idle_07
+  rotate: false
+  xy: 602, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_idle_08
+  rotate: false
+  xy: 702, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_idle_09
+  rotate: false
+  xy: 802, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_idle_10
+  rotate: false
+  xy: 902, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_run_01
+  rotate: false
+  xy: 1002, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_run_02
+  rotate: false
+  xy: 1102, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_run_03
+  rotate: false
+  xy: 1202, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_run_04
+  rotate: false
+  xy: 1302, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_run_05
+  rotate: false
+  xy: 1402, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_run_06
+  rotate: false
+  xy: 1502, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_run_07
+  rotate: false
+  xy: 1602, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_run_08
+  rotate: false
+  xy: 1702, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_run_09
+  rotate: false
+  xy: 1802, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_run_10
+  rotate: false
+  xy: 1902, 2
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_run_11
+  rotate: false
+  xy: 2, 102
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_run_12
+  rotate: false
+  xy: 102, 102
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_run_13
+  rotate: false
+  xy: 202, 102
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_run_14
+  rotate: false
+  xy: 302, 102
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_run_15
+  rotate: false
+  xy: 402, 102
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_run_16
+  rotate: false
+  xy: 502, 102
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_attack1_01
+  rotate: false
+  xy: 602, 102
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_attack1_02
+  rotate: false
+  xy: 702, 102
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_attack1_03
+  rotate: false
+  xy: 802, 102
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_attack1_04
+  rotate: false
+  xy: 902, 102
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_attack1_05
+  rotate: false
+  xy: 1002, 102
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_attack1_06
+  rotate: false
+  xy: 1102, 102
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_attack1_07
+  rotate: false
+  xy: 1202, 102
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_hurt_01
+  rotate: false
+  xy: 1302, 102
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_hurt_02
+  rotate: false
+  xy: 1402, 102
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_hurt_03
+  rotate: false
+  xy: 1502, 102
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+samurai_hurt_04
+  rotate: false
+  xy: 1602, 102
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1

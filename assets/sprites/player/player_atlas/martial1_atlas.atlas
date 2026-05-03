@@ -1,0 +1,300 @@
+
+martial1_atlas.png
+size: 2048,1024
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+martial1_idle_01
+  rotate: false
+  xy: 2, 2
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_idle_02
+  rotate: false
+  xy: 206, 2
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_idle_03
+  rotate: false
+  xy: 410, 2
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_idle_04
+  rotate: false
+  xy: 614, 2
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_idle_05
+  rotate: false
+  xy: 818, 2
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_idle_06
+  rotate: false
+  xy: 1022, 2
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_idle_07
+  rotate: false
+  xy: 1226, 2
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_idle_08
+  rotate: false
+  xy: 1430, 2
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_run_01
+  rotate: false
+  xy: 1634, 2
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_run_02
+  rotate: false
+  xy: 1838, 2
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_run_03
+  rotate: false
+  xy: 2, 206
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_run_04
+  rotate: false
+  xy: 206, 206
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_run_05
+  rotate: false
+  xy: 410, 206
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_run_06
+  rotate: false
+  xy: 614, 206
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_run_07
+  rotate: false
+  xy: 818, 206
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_run_08
+  rotate: false
+  xy: 1022, 206
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_attack1_01
+  rotate: false
+  xy: 1226, 206
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_attack1_02
+  rotate: false
+  xy: 1430, 206
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_attack1_03
+  rotate: false
+  xy: 1634, 206
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_attack1_04
+  rotate: false
+  xy: 1838, 206
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_attack1_05
+  rotate: false
+  xy: 2, 410
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_attack1_06
+  rotate: false
+  xy: 206, 410
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_attack2_01
+  rotate: false
+  xy: 410, 410
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_attack2_02
+  rotate: false
+  xy: 614, 410
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_attack2_03
+  rotate: false
+  xy: 818, 410
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_attack2_04
+  rotate: false
+  xy: 1022, 410
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_attack2_05
+  rotate: false
+  xy: 1226, 410
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_attack2_06
+  rotate: false
+  xy: 1430, 410
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_death_01
+  rotate: false
+  xy: 1634, 410
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_death_02
+  rotate: false
+  xy: 1838, 410
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_death_03
+  rotate: false
+  xy: 2, 614
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_death_04
+  rotate: false
+  xy: 206, 614
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_death_05
+  rotate: false
+  xy: 410, 614
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_death_06
+  rotate: false
+  xy: 614, 614
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_fall_01
+  rotate: false
+  xy: 818, 614
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_fall_02
+  rotate: false
+  xy: 1022, 614
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_jump_01
+  rotate: false
+  xy: 1226, 614
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_jump_02
+  rotate: false
+  xy: 1430, 614
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_takehit_01
+  rotate: false
+  xy: 1634, 614
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_takehit_02
+  rotate: false
+  xy: 1838, 614
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_takehit_03
+  rotate: false
+  xy: 2, 818
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1
+martial1_takehit_04
+  rotate: false
+  xy: 206, 818
+  size: 200, 200
+  orig: 200, 200
+  offset: 0, 0
+  index: -1

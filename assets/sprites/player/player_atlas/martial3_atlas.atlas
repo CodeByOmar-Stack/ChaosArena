@@ -1,0 +1,426 @@
+
+martial3_atlas.png
+size: 2048,1024
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+martial3_idle_01
+  rotate: false
+  xy: 2, 2
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_idle_02
+  rotate: false
+  xy: 132, 2
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_idle_03
+  rotate: false
+  xy: 262, 2
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_idle_04
+  rotate: false
+  xy: 392, 2
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_idle_05
+  rotate: false
+  xy: 522, 2
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_idle_06
+  rotate: false
+  xy: 652, 2
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_idle_07
+  rotate: false
+  xy: 782, 2
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_idle_08
+  rotate: false
+  xy: 912, 2
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_idle_09
+  rotate: false
+  xy: 1042, 2
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_idle_10
+  rotate: false
+  xy: 1172, 2
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_run_01
+  rotate: false
+  xy: 1302, 2
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_run_02
+  rotate: false
+  xy: 1432, 2
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_run_03
+  rotate: false
+  xy: 1562, 2
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_run_04
+  rotate: false
+  xy: 1692, 2
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_run_05
+  rotate: false
+  xy: 1822, 2
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_run_06
+  rotate: false
+  xy: 2, 132
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_run_07
+  rotate: false
+  xy: 132, 132
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_run_08
+  rotate: false
+  xy: 262, 132
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack1_01
+  rotate: false
+  xy: 392, 132
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack1_02
+  rotate: false
+  xy: 522, 132
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack1_03
+  rotate: false
+  xy: 652, 132
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack1_04
+  rotate: false
+  xy: 782, 132
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack1_05
+  rotate: false
+  xy: 912, 132
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack1_06
+  rotate: false
+  xy: 1042, 132
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack1_07
+  rotate: false
+  xy: 1172, 132
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack2_01
+  rotate: false
+  xy: 1302, 132
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack2_02
+  rotate: false
+  xy: 1432, 132
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack2_03
+  rotate: false
+  xy: 1562, 132
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack2_04
+  rotate: false
+  xy: 1692, 132
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack2_05
+  rotate: false
+  xy: 1822, 132
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack2_06
+  rotate: false
+  xy: 2, 262
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack3_01
+  rotate: false
+  xy: 132, 262
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack3_02
+  rotate: false
+  xy: 262, 262
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack3_03
+  rotate: false
+  xy: 392, 262
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack3_04
+  rotate: false
+  xy: 522, 262
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack3_05
+  rotate: false
+  xy: 652, 262
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack3_06
+  rotate: false
+  xy: 782, 262
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack3_07
+  rotate: false
+  xy: 912, 262
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack3_08
+  rotate: false
+  xy: 1042, 262
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_attack3_09
+  rotate: false
+  xy: 1172, 262
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_death_01
+  rotate: false
+  xy: 1302, 262
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_death_02
+  rotate: false
+  xy: 1432, 262
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_death_03
+  rotate: false
+  xy: 1562, 262
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_death_04
+  rotate: false
+  xy: 1692, 262
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_death_05
+  rotate: false
+  xy: 1822, 262
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_death_06
+  rotate: false
+  xy: 2, 392
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_death_07
+  rotate: false
+  xy: 132, 392
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_death_08
+  rotate: false
+  xy: 262, 392
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_death_09
+  rotate: false
+  xy: 392, 392
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_death_10
+  rotate: false
+  xy: 522, 392
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_death_11
+  rotate: false
+  xy: 652, 392
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_takehit_01
+  rotate: false
+  xy: 782, 392
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_takehit_02
+  rotate: false
+  xy: 912, 392
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_takehit_03
+  rotate: false
+  xy: 1042, 392
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_goingup_01
+  rotate: false
+  xy: 1172, 392
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_goingup_02
+  rotate: false
+  xy: 1302, 392
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_goingup_03
+  rotate: false
+  xy: 1432, 392
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_goingdown_01
+  rotate: false
+  xy: 1562, 392
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_goingdown_02
+  rotate: false
+  xy: 1692, 392
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
+martial3_goingdown_03
+  rotate: false
+  xy: 1822, 392
+  size: 126, 126
+  orig: 126, 126
+  offset: 0, 0
+  index: -1
