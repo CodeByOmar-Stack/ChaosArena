@@ -1,0 +1,37 @@
+name: Build & Release APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Grant permissions
+        run: chmod +x gradlew
+
+      - name: Build APK (libGDX)
+        run: ./gradlew android:assembleDebug
+
+      - name: Get APK name
+        id: apk
+        run: echo "file=android/build/outputs/apk/debug/android-debug.apk" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          name: ChaosArena APK
+          files: android/build/outputs/apk/debug/android-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
