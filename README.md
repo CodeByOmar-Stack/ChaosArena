@@ -34,8 +34,8 @@ Cada personaje tiene animaciones únicas: idle, correr, puño, patada, ataque es
 
 ## ⚡ Sistema de combate
 
-- **Puño** — Ataque rápido, daño bajo.
-- **Patada** — Mayor alcance y daño que el puño.
+- **Ataque 1** — Ataque ligero pero menos daños.
+- **Ataque 2** — Ataque pesado pero mucho mas daño.
 - **Especial** — Ataque devastador que consume la barra de combo al 100%. Doble animación encadenada y knockback elevado.
 - **Salto** — Permite esquivar y reposicionarse.
 - **Barra de combo** — Se carga con cada golpe conectado. Al llenarse habilita el ataque especial.
